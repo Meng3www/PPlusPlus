@@ -1,3 +1,15 @@
+|Paper | Architecture | Locus of Pragmatics | Application | Decoder | Data Sets | Max vs. Prob |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mao et al | __S0__ -> L1 -> S2 | Train | Contrastive Object Description | ? | Google Refexp | ? Prob |
+| Hendricks et al | __L0__ -> S1 i __S0__ | Train | Justification | Pure Sampling? | CUB-caption | ? Max |
+| Andreas et al | __L0__ -> S1 i __S0__ | Inference | Contrastive Image Captioning | Sampling & reranking | Abstract Scenes | Max |
+| Cohn-Gordon | __S0__ -> L1 -> S2 | Inference | CIC | Pragmatic Beam Search | MSCOCO | Prob |
+| Nie et al | __S0__ -> L1 -> S2 | Inference | Generalized CIC | Pragmatic Beam Search | CUB-captions | Prob |
+| Vedantem et al | S0 -> L1 -> ES | Inference | Justification & CIC | Pragmatic Beam Search | CUB-justify | Max |
+| Lazaridou et al | ? | fine-tuning & self-supervised | CIC | pure? | Abstract Scene | ? |
+
+
+
 Andreas & Klein 2016 Reasoning about Pragmatics
 ----------------------
 In their paper "Reasoning about Pragmatics with Neural Listeners and Speakers", Jacob Andreas and Dan Klein of the University of California, Berkeley present a model for pragmatically describing scenes, in which contrastive behavior results from a combination of inference-driven pragmatics and learned semantics
