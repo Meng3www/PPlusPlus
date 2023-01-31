@@ -14,3 +14,65 @@ What to do with Cohn-Gordon et al:
 - reproduce
 - control experiment with beam search for both, and greedy for both char and word
 
+
+----------------------------------
+### 31.01.2023
+Notes on Cohn-Gordon et al.:  
+Training:
+- S0: use a character-level LSTM defining a distribution over characters P(u|pc, image)
+    - pc: partial caption, string of characters constituting the caption so far
+    - u: the next character of the character
+    - pros: character-level U is much smaller than word-level
+- L0: takes a partial caption and a new character, returns a distribution over images
+- S1: takes a target image, performs inference over set of possible characters
+
+Evaluation: 
+- define a listener L_eval that use Bayes' rule to obtain from S0 the posterior probability of each image w given a full caption u
+    - split the training data in half, 1 for training the S0 used in caption generation model S1, 1 for training the S0 used in the caption evaluation model L_eval
+    - the caption succeeds as a referring expression if the target has more probability mass under the distribution L eval (image|caption) than any distractor.
+
+Dataset: 
+- Visual Genome dataset: provides captions for regions within images
+- MSCOCO: captions for whole images
+- 2 test sets
+    - TS1: 100 cluster of images, 10 for each of the 10 most common objects in Visual Genome
+    - TS2: 100 clusters of 10, regions in Visual Genome images whose ground truth captions have high word overlap (similar)
+- neural image captioning system: a CNN-RNN architecture 4 adapted to use a character-based LSTM for the language
+model
+- use a beam search with width 10
+- rationality parameter alpha=5.0 for S1
+
+Results:
+- compare the performance of character-level model to word-level model
+    - word-level model is incremental, use a word-level LSTM, evaluated with an L_eval model that also operates on the word level
+- Vriants of the model:
+    - a variant of S1: has a prior over utterances determined by an LSTM language model trained on the full set
+of captions, 67.2%
+    - standard S1: with unrolling such that the L 0 prior is drawn uniformly at each timestep rather than determined by the L0 posterior at the previous step, 67.4%
+
+Questions for tomorrow:
+- what is the w' and u' in the formula?
+- is files with ".pkl" trained encoder/decoder or data set?
+
+
+------------------------------
+### 31.01.2023
+booked the appointment slot for 1st course project feedback
+- 01.02.2023 9:50-10:10
+
+Comment:  
+Team members: Fanyi Meng, Jia Sheng
+
+Project information: This project aims to reproduce the key results of the paper "Cohn-Gordon et al. (2018), Pragmatically Informative Image Captioning with Character-Level Inference" and critically access its evaluation approaches with beam search and greedy sampling for the character- and word-level incremental predictions.
+
+Aspired submission date: April 15th, 2023
+
+Number of ECTS points: 6
+
+Some thoughts:
+
+- try to understand their paper and code
+- reproduce the results
+- control experiment with beam search for both, and greedy for both char and word
+
+
