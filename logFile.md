@@ -84,8 +84,8 @@ Some thoughts:
 **priority** code, data set up and running
 
 **to-dos**
-make the code our own (with modification and documentation)
-run some examples before training, eg. for word base beam search
-t-test is sufficient 
-performance metrics
+- make the code our own (with modification and documentation)
+- run some examples before training, eg. for word base beam search
+- t-test is sufficient 
+- performance metrics
 
