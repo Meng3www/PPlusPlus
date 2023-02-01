@@ -52,7 +52,10 @@ of captions, 67.2%
 
 Questions for tomorrow:
 - what is the w' and u' in the formula?
+    they are placeholders
 - is files with ".pkl" trained encoder/decoder or data set?
+    pickle is not important, any file that can hold data will do
+    vocal.pkl: replacement with pytorch function that extracts vocab. more info on Google
 
 
 ------------------------------
@@ -75,4 +78,14 @@ Some thoughts:
 - reproduce the results
 - control experiment with beam search for both, and greedy for both char and word
 
+
+------------------------------
+### 01.02.2023
+**priority** code, data set up and running
+
+**to-dos**
+make the code our own (with modification and documentation)
+run some examples before training, eg. for word base beam search
+t-test is sufficient 
+performance metrics
 
