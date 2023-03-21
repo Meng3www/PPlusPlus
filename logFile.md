@@ -89,3 +89,11 @@ Some thoughts:
 - t-test is sufficient 
 - performance metrics
 
+
+------------------------------
+### 21.03.2023
+error "_pickle.UnpicklingError: invalid load key, 'v'." when running "main.py", line 39
+- similar problem: https://stackoverflow.com/questions/56633136/receiving-unpicklingerror-invalid-load-key-v-when-trying-to-run-truecase
+- solution:
+    1. install git lfs: https://git-lfs.com/
+    2. go to directory Recurrent-RSA and do "git lfs pull"
