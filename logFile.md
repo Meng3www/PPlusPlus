@@ -105,3 +105,17 @@ error "PIL.UnidentifiedImageError", utils.sample.py
 error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
 - solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
 Excutable version pushed to [repo](https://github.com/Meng3www/Recurrent-RSA) instead of submodule in case of potential modifications
+
+
+------------------------------
+### 22.03.2023
+issue "beam search and Hyperparameters": original paper uses rationality $\alpha$ = 5.0, beam_width = 10
+- beam search generates multiple results, and many of them are not correct English expressions.
+- rationality is later used as an index in numpy.ndarray in `bayesian_agents.joint_rsa.py`
+    > scores.append(out[world.target,world.rationality,world.speaker])
+ 
+    while non-int cannot be an index. Once it's converted into int, there is index out of bound error.
+
+issue "Dataset": `utils.test_data.py`
+- multiple variables without initiation. possible missing files/folders
+
