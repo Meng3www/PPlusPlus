@@ -102,3 +102,4 @@ error "PIL.UnidentifiedImageError", utils.sample.py
 - solution: modify the code for naming `out_file` ***whether it's correct will be seen***
 error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
 - solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
+Excutable repo pushed to https://github.com/Meng3www/Recurrent-RSA instead of submodule in case of potential modifications
