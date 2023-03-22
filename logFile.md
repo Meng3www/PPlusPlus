@@ -114,7 +114,7 @@ issue "beam search and Hyperparameters": original paper uses rationality $\alpha
 - rationality is later used as an index in numpy.ndarray in `bayesian_agents.joint_rsa.py`
     > scores.append(out[world.target,world.rationality,world.speaker])
  
-    while non-int cannot be an index. Once it's converted into int, there is index out of bound error.
+    while non-int cannot be an index. Once it's converted into int, there is an index out of bound error.
 
 issue "Dataset": `utils.test_data.py`
 - multiple variables without initiation. possible missing files/folders
