@@ -97,3 +97,8 @@ error "_pickle.UnpicklingError: invalid load key, 'v'." when running "main.py", 
 - solution:
     1. install git lfs: https://git-lfs.com/
     2. go to directory Recurrent-RSA and do "git lfs pull"
+error "PIL.UnidentifiedImageError", utils.sample.py
+- cause: `out_file` having the same file name as `image`, when `out_file` does not open properly and replaced the original image file
+- solution: modify the code for naming `out_file` ***whether it's correct will be seen***
+error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
+- solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
