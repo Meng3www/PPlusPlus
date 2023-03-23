@@ -105,6 +105,7 @@ error "PIL.UnidentifiedImageError", utils.sample.py
 
 error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
 - solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
+
 Excutable version pushed to [repo](https://github.com/Meng3www/Recurrent-RSA) instead of submodule in case of potential modifications
 
 
@@ -119,4 +120,12 @@ issue "beam search and Hyperparameters": original paper uses rationality $\alpha
 
 issue "Dataset": `utils.test_data.py`
 - multiple variables without initiation. possible missing files/folders
+
+More issues (questions):
+- missing "charpragcap" directory and many files in author's github repository leading to many files not runnable
+- not stated clearly in the paper which data sets in [Visual Genome](http://visualgenome.org/api/v0/api_home.html) are adopted by the author as test sets that generated the testing results
+- the current trained models in author's repo are character-level models, might need to train word-level models for the evaluation
+- is "lang_mod" a character-level S0 model?
+- it seems that the "coco" model is for generating captions and the "vg" model for L_eval (see https://github.com/reubenharry/Recurrent-RSA/issues/4). The "vg" model seems to be a speaker model that behaves similarly to "coco", do we have to apply Bayes' rule to obtain a listener model for evalution (how?)
+- as discussed above, "beam search" generates many outcomes that are not correct expressions, but these incorrect expressions only appear in pragmatic caption, not in literal caption. However, according to the author's evaluation, pragmatic caption (S1) should be better than literal caption (S0)??? And greedy seems to perform better than beam search, which is also the opposite to the author's statement
 
