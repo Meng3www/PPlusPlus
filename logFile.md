@@ -101,6 +101,7 @@ error "_pickle.UnpicklingError: invalid load key, 'v'." when running "main.py", 
 error "PIL.UnidentifiedImageError", utils.sample.py
 - cause: `out_file` having the same file name as `image`, when `out_file` does not open properly and replaced the original image file
 - solution: modify the code for naming `out_file` ***whether it's correct will be seen***
+- **update on 23 March** the code for naming `out_file` is changed to the original, since the error comes from `Response [403]` and can be solved by changing url for pictures
 
 error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
 - solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
