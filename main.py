@@ -27,7 +27,7 @@ urls = [
 # the rationality of the S1
 rat = [5.0]
 # the neural model: captions trained on MSCOCO ("coco") are more verbose than VisualGenome ("vg")
-model = ["vg"]
+model = ["coco"]
 number_of_images = len(urls)
 # the model starts of assuming it's equally likely any image is the intended referent
 initial_image_prior=uniform_vector(number_of_images)
@@ -50,7 +50,7 @@ literal_caption = ana_beam(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	,beam_width=2
+	,beam_width=1
 )
 
 pragmatic_caption = ana_beam(
@@ -61,7 +61,7 @@ pragmatic_caption = ana_beam(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	,beam_width=2
+	,beam_width=1
 )
 
 print("Literal caption:\n",literal_caption)
