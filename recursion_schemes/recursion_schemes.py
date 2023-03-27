@@ -189,7 +189,8 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 			for sent,worldprior,prob in sent_worldprior_prob:
 				# print("".join(sent),np.exp(prob))
 				# print(state.timestep)
-				if sent[-1] == stop_token[rsa.seg_type]:
+				# fix 'coco beam no result' issue
+				if sent[-1] == stop_token[rsa.seg_type] or len(sent) >= max_sentence_length - 1:
 					final_sentence = copy.deepcopy(sent)
 					final_sentences.append((final_sentence,prob))
 					# print("REMOVED SENTENCE")

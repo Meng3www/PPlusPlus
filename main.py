@@ -18,14 +18,17 @@ from bayesian_agents.joint_rsa import RSA
 
 
 urls = [
-	#"https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg",
+	# "https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg",
 	"https://cdn.pixabay.com/photo/2019/08/14/18/51/school-bus-4406479_1280.jpg",
 	"https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg"
 	]
 
 # code is written to be able to jointly infer speaker's rationality and neural model, but for simplicity, let's assume these are fixed
 # the rationality of the S1
-rat = [5.0]
+# rat = 100, beam s1 produces non words
+# rat = 5, coco + beam s1 produces sentences ending with '$'
+# rat = 5, coco + beam s1 say things do not appear on the picture still, but '$'s are reduced
+rat = [1.0]
 # the neural model: captions trained on MSCOCO ("coco") are more verbose than VisualGenome ("vg")
 model = ["coco"]
 number_of_images = len(urls)
@@ -50,7 +53,7 @@ literal_caption = ana_beam(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	,beam_width=1
+	,beam_width=2
 )
 
 pragmatic_caption = ana_beam(
@@ -61,7 +64,7 @@ pragmatic_caption = ana_beam(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	,beam_width=1
+	,beam_width=2
 )
 
 print("Literal caption:\n",literal_caption)
