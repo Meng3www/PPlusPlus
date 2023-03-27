@@ -156,5 +156,10 @@ Visual Genome API Documentation: http://visualgenome.org/api/v0/api_endpoint_ref
     - /api/v0/qa/:q_type
 
 
+------------------------------
+### 27.03.2023
+a resnet model that is used in build_data.py is not provided by the author, could not proceed building data
+
+
     
     
