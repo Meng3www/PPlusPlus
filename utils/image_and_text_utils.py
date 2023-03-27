@@ -10,6 +10,8 @@ from utils.config import *
 ###IMAGE UTILS
 from utils.numpy_functions import softmax
 
+IMG_DATA_PATH = 'vg_data/'
+
 
 def overlap(target_box, candidate_box):
 
@@ -57,7 +59,7 @@ def valid_item(height,width,sentence,img_id):
 
     ratio = ((float(max(height,width))) / float(min(height,width)))
     size = float(height)
-    file_exists = os.path.isfile(IMG_DATA_PATH+"VG_100K/"+str(img_id)+".jpg")
+    file_exists = os.path.isfile(IMG_DATA_PATH+"VG_100K_2/"+str(img_id)+".jpg")
     good_length = len(sentence) < max_sentence_length
     no_punctuation = all((char in sym_set) for char in sentence)
     return ratio<1.25 and size>100.0 and file_exists and good_length and no_punctuation
@@ -249,15 +251,22 @@ def item_to_rep(item,id_to_caption):
 
 #convert caption into vector: SHAPE?
 def vectorize_caption(sentence):
+    # get rid of punctuation
     if len(sentence) > 0 and sentence[-1] in list("!?."):
         sentence = sentence[:-1]
+    # add start and stop token
     sentence = start_token["char"] + sentence + stop_token["char"]
+    # sentence is now a list
     sentence = list(sentence)
+    # add padding
     while len(sentence) < max_sentence_length+2:
         sentence.append(pad_token)
 
+    # caption_in: all characters except the last one 
     caption_in = sentence[:-1]
+    # caption_out: all characters except the first one
     caption_out = sentence[1:]
+    
     caption_in = np.asarray([char_to_index[x] for x in caption_in])
     caption_out = np.expand_dims(np.asarray([char_to_index[x] for x in caption_out]),0)
     one_hot = np.zeros((caption_out.shape[1], len(sym_set)))

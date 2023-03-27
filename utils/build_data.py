@@ -23,16 +23,16 @@ if __name__ == "__main__":
 		from keras.models import Model
 		from keras.preprocessing import image
 		from PIL import Image as PIL_Image
-		from charpragcap.resources.models.resnet import resnet
+		# from charpragcap.resources.models.resnet import resnet
 
 		#define resnet from input to fully connected layer
-		fc_resnet = resnet(img_rep_layer)
+		# fc_resnet = resnet(img_rep_layer)
 
 		def make_id_to_caption():
 			valids = 0
 			invalids = 0
 			id_to_caption = {}
-			json_data=json.loads(open('charpragcap/resources/visual_genome_JSON/region_descriptions.json','r').read())
+			json_data=json.loads(open('vg_data/region_descriptions.json','r').read())
 			print("READ JSON, len:",len(json_data))
 
 			
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 				# print(id_to_caption)
 			print(len(id_to_caption))
 			print("num valid/ num invalid",valids,invalids)
-			pickle.dump(id_to_caption,open('charpragcap/resources/id_to_caption','wb'))
+			pickle.dump(id_to_caption,open('vg_data/id_to_caption','wb'))
 
 
 		# e.g.: id_to_caption = {'10_1382': ('the boy with ice cream',(139,82,421,87)),'11_1382': ('the man with ice cream',(139,82,421,87))}...
