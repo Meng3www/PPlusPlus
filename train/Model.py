@@ -25,7 +25,7 @@ class Model:
 		hidden_size=512
 		num_layers=1
 
-		output_size=30
+		output_size = len(self.seg2idx)
 
 		transform = transforms.Compose([
 			transforms.ToTensor(), 
