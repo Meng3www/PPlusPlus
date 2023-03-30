@@ -41,10 +41,16 @@ class Model:
 		self.encoder.eval()  # evaluation mode (BN uses moving mean/variance)
 		self.decoder = DecoderRNN(embed_size, hidden_size, 
 							 output_size, num_layers)
-		
+
 		# Load the trained model parameters
-		self.encoder.load_state_dict(torch.load(self.encoder_path,map_location={'cuda:0': 'cpu'}))
-		self.decoder.load_state_dict(torch.load(self.decoder_path,map_location={'cuda:0': 'cpu'}))
+		# encoder: linear = {Linear} Linear(in_feature=2048, out_feature=256, bias=True)
+		self.encoder.load_state_dict(torch.load(self.encoder_path, map_location={'cuda:0': 'cpu'}))
+		# DecoderRNN(
+		#   (embed): Embedding(30, 256)
+		#   (lstm): LSTM(256, 512, batch_first=True)
+		#   (linear): Linear(in_features=512, out_features=30, bias=True)
+		# )
+		self.decoder.load_state_dict(torch.load(self.decoder_path, map_location={'cuda:0': 'cpu'}))
 
 		if torch.cuda.is_available():
 			self.encoder.cuda()

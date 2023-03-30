@@ -44,6 +44,7 @@ class RSA:
 		self.initial_speakers = [Model(path=path,
 			dictionaries=(self.seg2idx,self.idx2seg)) for path in paths] 
 		self.speaker_prior = Model(path="lang_mod",
+		# self.speaker_prior = Model(path=paths[0],
 			dictionaries=(self.seg2idx,self.idx2seg))
 		# self.initial_speaker.set_features()
 
@@ -145,14 +146,17 @@ class RSA:
 				# print(out.shape)
 				scores.append(out[world.target,world.rationality,world.speaker])
 
-			scores = np.asarray(scores)
+			scores = np.asarray(scores)  # (30,)
 			# print("SCORES",scores)
 			# rationality in traditional RSA sense
+			# self.initial_speakers: Model.Model object
+			# #world.speaker, world.rationality: e.g., 0
+			# rationality_support: e.g. {list: 1} [1.0]
 			scores = scores*(self.initial_speakers[world.speaker].rationality_support[world.rationality])
 			# update prior to posterior
 			# print(scores.shape,prior.shape)
 			posterior = (scores + prior) - scipy.special.logsumexp(scores + prior)
-			# print("POSTERIOR",posterior)
+			# print("POSTERIOR",posterior)  # {ndarray: (30,)}
 
 			return posterior
 

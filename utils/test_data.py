@@ -27,7 +27,7 @@ def check_reps():
 
 def view_data():
 	for full_id,cap_in,cap_out in single_stream(test,X0_type='id'):
-	    img = get_img_from_id(full_id,id_to_caption)
+		img = get_img_from_id(full_id,id_to_caption)
 	    display(img)
 	    print("".join([index_to_char[x] for x in cap_in]))
 	    print(''.join([index_to_char[np.argmax(x)] for x in cap_out]))

@@ -30,7 +30,7 @@ urls = [
 # rat = 5, coco + beam s1 say things do not appear on the picture still, but '$'s are reduced
 rat = [1.0]
 # the neural model: captions trained on MSCOCO ("coco") are more verbose than VisualGenome ("vg")
-model = ["coco"]
+model = ["vg"]
 number_of_images = len(urls)
 # the model starts of assuming it's equally likely any image is the intended referent
 initial_image_prior=uniform_vector(number_of_images)

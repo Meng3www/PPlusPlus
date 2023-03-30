@@ -158,7 +158,7 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 			state.context_sentence = sent
 
 			# out = rsa.speaker(state=state,img_idx=which_image,depth=depth)
-			s = rsa.speaker(state=state,world=world,depth=depth)	
+			s = rsa.speaker(state=state,world=world,depth=depth)  # {ndarray: (30,)}
 			
 			for seg,prob in enumerate(np.squeeze(s)):
 
