@@ -147,7 +147,10 @@ if __name__ == "__main__":
 
     # inspect the pickle file
     id_to_caption = pickle.load(open("vg_data/ts1/tree",'rb'))
-    print(list(id_to_caption.items())[:10])
+    # print(list(id_to_caption.items())[:10])
+    for item in list(id_to_caption.items()):
+        print(item, end="\t")
+        print(item[1][0])
 
     # inspect the image region
-    get_region_from_image('149_4936249', (181, 1, 798, 618))
+    # get_region_from_image('149_4936249', (181, 1, 798, 618))

@@ -57,6 +57,7 @@ class DecoderRNN(nn.Module):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_size)
+        # output, (h_n, c_n)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         self.init_weights()
@@ -67,21 +68,27 @@ class DecoderRNN(nn.Module):
         self.linear.weight.data.uniform_(-0.1, 0.1)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, features, captions, lengths):
-        """Decode image feature vectors and generates captions."""
+    def forward(self, features, captions, hidden):
+        """
+        Decode image feature vectors and generates captions.
+        features: vector
+        captions: tensor
+        lengths: hidden?
+        """
         embeddings = self.embed(captions)
         embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
         # embeddings – padded batch of variable length sequences.
         # lengths – list of sequence lengths of each batch element (must be on the CPU if provided as a tensor)
-
-        ###################### what is `length`?
         # packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
-        ###################### what is the output? output, (hidden, cell) or hiddens, _?
+        # output, (h_n, c_n)
         # hiddens, _ = self.lstm(packed)
-        output, (hidden, cell) = self.lstm(embeddings)
+        output, (hidden, cell) = self.lstm(embeddings, hidden)
+        # get LSTM outputs
+        # lstm_output, (h, c) = self.lstm(x, hidden)
 
-        outputs = self.linear(hiddens[0])
-        return outputs
+        predictions = self.linear(output)
+        return torch.nn.functional.log_softmax(predictions, dim=1), hidden
+
         ##################### 06c-char-level-LSTM.py
         # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
         # predictions = self.linear_map(output)
@@ -117,16 +124,39 @@ class DecoderRNN(nn.Module):
     def init_hidden(self):
         return torch.zeros(1, self.hidden_size)
 
+def getTrainingPair():
+    """
+    get training item in desired input format (vectors of indices)
+    captions_clean: captions tokenised, lower case, as a list
+    :return:
+    features: vector after pre-trained CNN
+    captions: to be used in embeddings = self.embed(captions)
+    """
+    #todo:
+
+    # read the picture, get features
+    cnn = EncoderCNN(embed_size)
+    features = cnn.forward(images)
+
+    # read captions, get index
+    with open("data/vocab.pkl", 'rb') as f:
+        vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
+    # vocab.idx2word or a list of tokens?
+    captions = [SOSIndex] + [vocab.word2idx[word] for word in captions_clean] + [EOSIndex]
+    # captions = torch.tensor(captions)
+    return features, captions
+
 def train(features, captions):
     # get a fresh hidden layer
     hidden = lstm.initHidden()
     # zero the gradients
     optimizer.zero_grad()
     # run sequence
+    # def forward(self, features, captions, lengths):
     predictions, hidden = lstm(features, captions, hidden)
     # compute loss (NLLH)
     ##################### what is the correct argument captions[1:len(name)]?
-    loss = criterion(predictions[:-1], captions[1:len(name)])
+    loss = criterion(predictions[:-1], captions[1:len(captions)])
     # perform backward pass
     loss.backward()
     # perform optimization
@@ -144,6 +174,7 @@ if __name__ == '__main__':
     #     vocab = pickle.load(f)
     # print(vocab)
 
+    # model training
     lstm = DecoderRNN(embed_size=0, hidden_size=0, vocab_size=0, num_layers=0)
                 # cat_embedding_size=32, n_cat=n_categories, ####### features
                 # char_embedding_size=embed_size,
@@ -172,4 +203,7 @@ if __name__ == '__main__':
             all_losses.append(total_loss / plot_every)
             total_loss = 0
             print(all_losses)
+    ##############################
+
+
 

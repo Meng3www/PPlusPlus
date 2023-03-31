@@ -15,34 +15,27 @@ from train.Model import Model
 
 class RSA:
 
-	def __init__(
-		self,
-		seg_type,
-		tf,
-		):
+	def __init__(self, seg_type, tf):
+		self.tf = tf
+		self.seg_type = seg_type
+		self.char = self.seg_type == "char"
 
+		# caches for memoization
+		self._speaker_cache = {}
+		self._listener_cache = {}
+		self._speaker_prior_cache = {}
 
-			self.tf=tf
-			self.seg_type=seg_type
-			self.char=self.seg_type="char"
+		if self.char:
+			self.idx2seg = index_to_char
+			self.seg2idx = char_to_index
+		else:  # word
+			#todo: build vocab here
+			self.idx2seg = index_to_word
+			self.seg2idx = word_to_index
 
-			#caches for memoization
-			self._speaker_cache = {}
-			self._listener_cache = {}
-			self._speaker_prior_cache = {}
-
-			if self.char:
-				self.idx2seg=index_to_char
-				self.seg2idx=char_to_index
-
-
-	
-
-	def initialize_speakers(self,paths):
-
-
+	def initialize_speakers(self, paths):
 		self.initial_speakers = [Model(path=path,
-			dictionaries=(self.seg2idx,self.idx2seg)) for path in paths] 
+			dictionaries=(self.seg2idx,self.idx2seg)) for path in paths]
 		self.speaker_prior = Model(path="lang_mod",
 		# self.speaker_prior = Model(path=paths[0],
 			dictionaries=(self.seg2idx,self.idx2seg))
@@ -53,14 +46,7 @@ class RSA:
 		# self.images=images
 		# print("NUMBER OF IMAGES:",self.number_of_images)
 
-
-
-
-
-		
-
 	def flush_cache(self):
-
 		self._speaker_cache = {}
 		self._listener_cache = {}
 		self._speaker_prior_cache = {}	
@@ -103,15 +89,11 @@ class RSA:
 			return self._listener_cache[hashable_args]
 		return helper
 
-
-
-
 	# @memoize_speaker_prior
 	# def speaker_prior(self,state,world):
 	# 	# print("SPEAKER PRIOR",(world.target,world.speaker,world.rationality))
 
 	# 	pass
-
 
 	@memoize_speaker
 	def speaker(self,state,world,depth):
@@ -119,24 +101,19 @@ class RSA:
 		# print("world prior shape",state.world_priors[0].shape)
 		# print("SPEAKER\n\n",depth)
 
-
 		if depth==0:
 			# print("S0")
 			# print("TIMESTEP:",state.timestep,"INITIAL SPEAKER CALL")
 
-
-
 			return self.initial_speakers[world.speaker].forward(state=state,world=world)
 			
-		else: 
-
+		else:
 			prior = self.speaker(state,world,depth=0)
 			# self.initial_speakers[world.speaker].forward(state=state,world=world)
 			# prior = self.speaker_prior.forward(state=state,world=world)
 
 		# self.speaker(state=state,world=world,depth=0)
 		if depth==1:
-
 			scores = []
 			for k in range(prior.shape[0]):
 				# print(world.target,world.rationality,"FIRST")
@@ -161,7 +138,6 @@ class RSA:
 			return posterior
 
 		elif depth==2:
-
 			scores = []
 			for k in range(prior.shape[0]):
 
@@ -178,7 +154,6 @@ class RSA:
 
 	@memoize_listener
 	def listener(self,state,utterance,depth):
-
 		# base case listener is either neurally trained, or inferred from neural s0, given the state's current prior on images
 
 		# world = RSA_World(target=0,speaker=0,rationality=0)
@@ -220,8 +195,6 @@ class RSA:
 		return world_posterior
 
 	def listener_simple(self,state,utterance,depth):
-
-
 		# base case listener is either neurally trained, or inferred from neural s0, given the state's current prior on images
 
 		# world = RSA_World(target=0,speaker=0,rationality=0)
@@ -263,12 +236,18 @@ class RSA:
 
 
 if __name__ == '__main__':
-	scores = [[[-7.10969925]], [[-6.99300194]]]
-	scores = np.asarray(scores)
-	wprior = [[[-0.69314718]], [[-0.69314718]]]
-	wprior = np.asarray(wprior)
-	print(scores + wprior)
-	print(scipy.special.logsumexp(scores + wprior))
+	# scores = [[[-7.10969925]], [[-6.99300194]]]
+	# scores = np.asarray(scores)
+	# wprior = [[[-0.69314718]], [[-0.69314718]]]
+	# wprior = np.asarray(wprior)
+	# print(scores + wprior)
+	# print(scipy.special.logsumexp(scores + wprior))
 	# Compute the log of the sum of exponentials of input elements.
 	# print(np.log(np.exp(-8.4154067) + np.exp(-8.91958475)))
-	print(scores + wprior - scipy.special.logsumexp(scores + wprior))
+	# print(scores + wprior - scipy.special.logsumexp(scores + wprior))
+	#################################
+
+	is_char = "char"
+	type_of = is_char == "char"
+	print(type_of)
+
