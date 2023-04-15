@@ -39,7 +39,7 @@ initial_speaker_prior=uniform_vector(1)
 initial_world_prior = make_initial_prior(initial_image_prior,initial_rationality_prior,initial_speaker_prior)
 
 # make a character level speaker, using torch model (instead of tensorflow model)
-speaker_model = RSA(seg_type="char",tf=False)
+speaker_model = RSA(seg_type="word", tf=False)
 speaker_model.initialize_speakers(model)
 # set the possible images and rationalities
 speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)

@@ -1,3 +1,4 @@
+import pickle
 import time
 import itertools
 import scipy
@@ -12,10 +13,12 @@ from utils.config import *
 from bayesian_agents.rsaWorld import RSA_World
 from utils.numpy_functions import softmax
 from train.Model import Model
+from utils.build_vocab import Vocabulary
 
 class RSA:
 
 	def __init__(self, seg_type, tf):
+	# speaker_model = RSA(seg_type="char",tf=False)
 		self.tf = tf
 		self.seg_type = seg_type
 		self.char = self.seg_type == "char"
@@ -29,9 +32,12 @@ class RSA:
 			self.idx2seg = index_to_char
 			self.seg2idx = char_to_index
 		else:  # word
-			#todo: build vocab here
-			self.idx2seg = index_to_word
-			self.seg2idx = word_to_index
+			with open('vg_data/vocab.pkl', 'rb') as file:
+				unpickler = MyCustomUnpickler(file)
+				vocab = unpickler.load()
+
+			self.idx2seg = vocab.idx2word
+			self.seg2idx = vocab.word2idx
 
 	def initialize_speakers(self, paths):
 		self.initial_speakers = [Model(path=path,
@@ -234,6 +240,14 @@ class RSA:
 
 		return world_posterior
 
+# https://stackoverflow.com/questions/50465106/attributeerror-when-reading-a-pickle-file
+class MyCustomUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == "__main__":
+            module = "utils.build_vocab"
+        return super().find_class(module, name)
+
+
 
 if __name__ == '__main__':
 	# scores = [[[-7.10969925]], [[-6.99300194]]]
@@ -247,7 +261,16 @@ if __name__ == '__main__':
 	# print(scores + wprior - scipy.special.logsumexp(scores + wprior))
 	#################################
 
-	is_char = "char"
-	type_of = is_char == "char"
-	print(type_of)
+	# is_char = "char"
+	# type_of = is_char == "char"
+	# print(type_of)
+	#################################
 
+	# with open("vg_data/vocab.pkl", "rb") as f:
+	# 	voc = pickle.load(f)
+	# print(voc.word2idx['<pad>'])
+	# print(voc.word2idx['<start>'])
+	# print(voc.word2idx['<end>'])
+	# print(voc.word2idx['<unk>'])
+
+	pass
