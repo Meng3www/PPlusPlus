@@ -174,6 +174,7 @@ compare prob. what if coco s0 and s1 not in vg s0 s1?
 
 ------------------------------
 ### 15.04.2023
+- vocab pickled: vg_data/vocab.pkl (14286), vg_data/vocab_small.pkl (4987)
 - try out exisiting models with seg_type = 'word' 
 current models provided by the authors do not work with seg_type = 'word' for below error:
 > RuntimeError: Error(s) in loading state_dict for DecoderRNN:      
