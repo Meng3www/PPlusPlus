@@ -165,13 +165,11 @@ a resnet model that is used in build_data.py is not provided by the author, coul
 ### 14.04.2023
 - try out exisiting models with seg_type = 'word' 
 
-- eval: put image to coco and get chars0, chars1 greedy 
+- eval: put image to coco and get chars0, chars1 greedy     
+put the same image to vg and get chars0, chars1 beam?     
+compare prob. what if coco s0 and s1 not in vg s0 s1?     
 
-put the same image to vg and get chars0, chars1 beam?
-
-compare prob. what if coco s0 and s1 not in vg s0 s1?
-
-use ts1 only, read local image 
+- use ts1 only, read local image 
 
 
 ------------------------------
