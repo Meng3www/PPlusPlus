@@ -163,9 +163,9 @@ a resnet model that is used in build_data.py is not provided by the author, coul
 
 ------------------------------
 ### 14.04.2023
-try out exisiting models with seg_type = 'word' 
+- try out exisiting models with seg_type = 'word' 
 
-eval: put image to coco and get chars0, chars1 greedy 
+- eval: put image to coco and get chars0, chars1 greedy 
 
 put the same image to vg and get chars0, chars1 beam?
 
@@ -173,6 +173,17 @@ compare prob. what if coco s0 and s1 not in vg s0 s1?
 
 use ts1 only, read local image 
 
+
+------------------------------
+### 15.04.2023
+- try out exisiting models with seg_type = 'word' 
+current models provided by the authors do not work with seg_type = 'word' for below error:
+> RuntimeError: Error(s) in loading state_dict for DecoderRNN:      
+	size mismatch for embed.weight: copying a param with shape torch.Size([30, 256]) from checkpoint, the shape in current model is torch.Size([14286, 256]).     
+	size mismatch for linear.weight: copying a param with shape torch.Size([30, 512]) from checkpoint, the shape in current model is torch.Size([14286, 512]).     
+	size mismatch for linear.bias: copying a param with shape torch.Size([30]) from checkpoint, the shape in current model is torch.Size([14286]).
+
+see more in seg_type_word branch
 
 
     
