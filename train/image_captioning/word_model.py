@@ -56,8 +56,9 @@ class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
+        # self.cat_embedding = nn.Embedding(n_cat, cat_embedding_size)  # (18, 32)
         self.embed = nn.Embedding(vocab_size, embed_size)
-        # output, (h_n, c_n)
+        # output, (h_n, c_n), input_size = cat_embedding_size+char_embedding_size (32+32=64)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         self.init_weights()
@@ -124,6 +125,11 @@ class DecoderRNN(nn.Module):
     def init_hidden(self):
         return torch.zeros(1, self.hidden_size)
 
+
+embed_size=256
+hidden_size=512
+num_layers=1
+
 def getTrainingPair():
     """
     get training item in desired input format (vectors of indices)
@@ -141,7 +147,7 @@ def getTrainingPair():
     # read captions, get index
     with open("data/vocab.pkl", 'rb') as f:
         vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
-    # vocab.idx2word or a list of tokens?
+    # vocab.idx2word or a list of index?
     captions = [SOSIndex] + [vocab.word2idx[word] for word in captions_clean] + [EOSIndex]
     # captions = torch.tensor(captions)
     return features, captions
@@ -175,7 +181,7 @@ if __name__ == '__main__':
     # print(vocab)
 
     # model training
-    lstm = DecoderRNN(embed_size=0, hidden_size=0, vocab_size=0, num_layers=0)
+    lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size, vocab_size=0, num_layers=num_layers)
                 # cat_embedding_size=32, n_cat=n_categories, ####### features
                 # char_embedding_size=embed_size,
                 # n_char=vocab_size,
