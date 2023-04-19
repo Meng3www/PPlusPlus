@@ -1,17 +1,134 @@
-### 30.01.2023
-decide which paper to reproduce 
+### 19.04.2023
+- the encoders and decoders provided by the author are different, even though some have the same size
+- vg-encoder-5-3000.pkl borrowed to get features from image
+- getTrainingPair() as generator is very slow (10 pairs/5 sec), if used directly during the training, it could last a long time and time out more than needed. 
+- [Datasets & DataLoaders](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#datasets-dataloaders): 
 
-| [Andreas & Klein (2016)](/Relevant%20Papers/Andreas%20%26%20Klein%202016%20Reasoning%20about%20Pragmatics.pdf) | [Cohn-Gordon et al (2018)](/Relevant%20Papers/Cohn-Gordon%20et%20al%202018%20Character-Level%20Inference.pdf) |
-| ------------- | ------------- |
-| insufficient information on encoding image | [code is provided](https://github.com/reubenharry/Recurrent-RSA) |
-| human evaluation using Amazon Mechanical Turk | automatic evaluation: production and evaluation models trained on separate sets (?) |
 
-can we get away with not having human evaluation for Andreas & Klein (2016): No considering fig 5n etc. <br>
-acting as human rater means we two have to rate all the results $:)$
+------------------------------
+### 15.04.2023
+- vocab pickled: vg_data/vocab.pkl (14286), vg_data/vocab_small.pkl (4987)
+- try out exisiting models with seg_type = 'word' 
+current models provided by the authors do not work with seg_type = 'word' for below error:
+> RuntimeError: Error(s) in loading state_dict for DecoderRNN:      
+	size mismatch for embed.weight: copying a param with shape torch.Size([30, 256]) from checkpoint, the shape in current model is torch.Size([14286, 256]).     
+	size mismatch for linear.weight: copying a param with shape torch.Size([30, 512]) from checkpoint, the shape in current model is torch.Size([14286, 512]).     
+	size mismatch for linear.bias: copying a param with shape torch.Size([30]) from checkpoint, the shape in current model is torch.Size([14286]).
 
-What to do with Cohn-Gordon et al:
+see more in `seg_type_word` branch. branch will not be updated further. more update: see `word_model_branch`
+
+
+------------------------------
+### 14.04.2023
+- try out exisiting models with seg_type = 'word'
+	
+- eval: put image to coco and get chars0, chars1 greedy     
+put the same image to vg and get chars0, chars1 beam?     
+compare prob. what if coco s0 and s1 not in vg s0 s1?     
+
+- use ts1 only, read local image 
+
+
+------------------------------
+### 27.03.2023
+a resnet model that is used in build_data.py is not provided by the author, could not proceed building data
+
+
+------------------------------
+### 25.03.2023
+a python tool for retrieving data from Visual Genome found: [Visual Genome Python Driver](https://github.com/ranjaykrishna/visual_genome_python_driver)
+- invalid methods: 
+    - api.get_all_image_ids()
+    - api.get_image_ids_in_range(start_index=2000, end_index=2010)
+
+Visual Genome API Documentation: http://visualgenome.org/api/v0/api_endpoint_reference.html
+- invalid endpoints: 
+    - /api/v0/images/all
+    - /api/v0/image/{:id}/qa
+    - /api/v0/qa/all
+    - /api/v0/qa/:q_type
+
+
+------------------------------
+### 22.03.2023
+issue "beam search and Hyperparameters": original paper uses rationality $\alpha$ = 5.0, beam_width = 10
+- beam search generates multiple results, and many of them are not correct English expressions.
+- rationality is later used as an index in numpy.ndarray in `bayesian_agents.joint_rsa.py`
+    > scores.append(out[world.target,world.rationality,world.speaker])
+ 
+    while non-int cannot be an index. Once it's converted into int, there is an index out of bound error.
+
+issue "Dataset": `utils.test_data.py`
+- multiple variables without initiation. possible missing files/folders
+
+More issues (questions):
+- missing "charpragcap" directory and many files in author's github repository leading to many files not runnable
+- not stated clearly in the paper which data sets in [Visual Genome](http://visualgenome.org/api/v0/api_home.html) are adopted by the author as test sets that generated the testing results
+- the current trained models in author's repo are character-level models, might need to train word-level models for the evaluation
+- is "lang_mod" a character-level S0 model?
+- it seems that the "coco" model is for generating captions and the "vg" model for L_eval (see https://github.com/reubenharry/Recurrent-RSA/issues/4). The "vg" model seems to be a speaker model that behaves similarly to "coco", do we have to apply Bayes' rule to obtain a listener model for evalution (how?)
+- as discussed above, "beam search" generates many outcomes that are not correct expressions, but these incorrect expressions only appear in pragmatic caption, not in literal caption. However, according to the author's evaluation, pragmatic caption (S1) should be better than literal caption (S0)??? And greedy seems to perform better than beam search, which is also the opposite to the author's statement
+- `recursion_schemes/recursion_schemes.py`  
+    \# originally 
+    > \>\>\> state.context_sentence   
+    [[[1],  [2],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0]]]    
+    
+    \# after the following line
+    > \>\>\> state.context_sentence=context_sentence    
+    \>\>\> state.context_sentence    
+    ['^']    
+    
+    what is the point of getting the original state.context_sentence?
+
+
+------------------------------
+### 21.03.2023
+error "_pickle.UnpicklingError: invalid load key, 'v'." when running "main.py", line 39
+- similar problem: https://stackoverflow.com/questions/56633136/receiving-unpicklingerror-invalid-load-key-v-when-trying-to-run-truecase
+- solution:
+    1. install git lfs: https://git-lfs.com/
+    2. go to directory Recurrent-RSA and do "git lfs pull"
+
+error "PIL.UnidentifiedImageError", utils.sample.py
+- cause: `out_file` having the same file name as `image`, when `out_file` does not open properly and replaced the original image file
+- solution: modify the code for naming `out_file` ***whether it's correct will be seen***
+- **update on 23 March** the code for naming `out_file` is changed to the original, since the error comes from `Response [403]` and can be solved by changing url for pictures
+
+error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
+- solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
+
+Excutable version pushed to [repo](https://github.com/Meng3www/Recurrent-RSA) instead of submodule in case of potential modifications
+
+
+------------------------------
+### 01.02.2023
+**priority** code, data set up and running
+
+**to-dos**
+- make the code our own (with modification and documentation)
+- run some examples before training, eg. for word base beam search
+- t-test is sufficient 
+- performance metrics
+
+
+------------------------------
+### 31.01.2023
+booked the appointment slot for 1st course project feedback
+- 01.02.2023 9:50-10:10
+
+Comment:  
+Team members: Fanyi Meng, Jia Sheng
+
+Project information: This project aims to reproduce the key results of the paper "Cohn-Gordon et al. (2018), Pragmatically Informative Image Captioning with Character-Level Inference" and critically access its evaluation approaches with beam search and greedy sampling for the character- and word-level incremental predictions.
+
+Aspired submission date: April 15th, 2023
+
+Number of ECTS points: 6
+
+Some thoughts:
+
 - try to understand their paper and code
-- reproduce
+- reproduce the results
 - control experiment with beam search for both, and greedy for both char and word
 
 
@@ -58,131 +175,19 @@ Questions for tomorrow:
     vocal.pkl: replacement with pytorch function that extracts vocab. more info on Google
 
 
-------------------------------
-### 31.01.2023
-booked the appointment slot for 1st course project feedback
-- 01.02.2023 9:50-10:10
+----------------------------------
+### 30.01.2023
+decide which paper to reproduce 
 
-Comment:  
-Team members: Fanyi Meng, Jia Sheng
+| [Andreas & Klein (2016)](/Relevant%20Papers/Andreas%20%26%20Klein%202016%20Reasoning%20about%20Pragmatics.pdf) | [Cohn-Gordon et al (2018)](/Relevant%20Papers/Cohn-Gordon%20et%20al%202018%20Character-Level%20Inference.pdf) |
+| ------------- | ------------- |
+| insufficient information on encoding image | [code is provided](https://github.com/reubenharry/Recurrent-RSA) |
+| human evaluation using Amazon Mechanical Turk | automatic evaluation: production and evaluation models trained on separate sets (?) |
 
-Project information: This project aims to reproduce the key results of the paper "Cohn-Gordon et al. (2018), Pragmatically Informative Image Captioning with Character-Level Inference" and critically access its evaluation approaches with beam search and greedy sampling for the character- and word-level incremental predictions.
+can we get away with not having human evaluation for Andreas & Klein (2016): No considering fig 5n etc. <br>
+acting as human rater means we two have to rate all the results $:)$
 
-Aspired submission date: April 15th, 2023
-
-Number of ECTS points: 6
-
-Some thoughts:
-
+What to do with Cohn-Gordon et al:
 - try to understand their paper and code
-- reproduce the results
+- reproduce
 - control experiment with beam search for both, and greedy for both char and word
-
-
-------------------------------
-### 01.02.2023
-**priority** code, data set up and running
-
-**to-dos**
-- make the code our own (with modification and documentation)
-- run some examples before training, eg. for word base beam search
-- t-test is sufficient 
-- performance metrics
-
-
-------------------------------
-### 21.03.2023
-error "_pickle.UnpicklingError: invalid load key, 'v'." when running "main.py", line 39
-- similar problem: https://stackoverflow.com/questions/56633136/receiving-unpicklingerror-invalid-load-key-v-when-trying-to-run-truecase
-- solution:
-    1. install git lfs: https://git-lfs.com/
-    2. go to directory Recurrent-RSA and do "git lfs pull"
-
-error "PIL.UnidentifiedImageError", utils.sample.py
-- cause: `out_file` having the same file name as `image`, when `out_file` does not open properly and replaced the original image file
-- solution: modify the code for naming `out_file` ***whether it's correct will be seen***
-- **update on 23 March** the code for naming `out_file` is changed to the original, since the error comes from `Response [403]` and can be solved by changing url for pictures
-
-error "Module 'scipy.misc' has no attribute 'logsumexp'" bayesian_agents.joint_rsa.py
-- solution: relacing `scipy.misc.logsumexp` with `scipy.special.logsumexp`
-
-Excutable version pushed to [repo](https://github.com/Meng3www/Recurrent-RSA) instead of submodule in case of potential modifications
-
-
-------------------------------
-### 22.03.2023
-issue "beam search and Hyperparameters": original paper uses rationality $\alpha$ = 5.0, beam_width = 10
-- beam search generates multiple results, and many of them are not correct English expressions.
-- rationality is later used as an index in numpy.ndarray in `bayesian_agents.joint_rsa.py`
-    > scores.append(out[world.target,world.rationality,world.speaker])
- 
-    while non-int cannot be an index. Once it's converted into int, there is an index out of bound error.
-
-issue "Dataset": `utils.test_data.py`
-- multiple variables without initiation. possible missing files/folders
-
-More issues (questions):
-- missing "charpragcap" directory and many files in author's github repository leading to many files not runnable
-- not stated clearly in the paper which data sets in [Visual Genome](http://visualgenome.org/api/v0/api_home.html) are adopted by the author as test sets that generated the testing results
-- the current trained models in author's repo are character-level models, might need to train word-level models for the evaluation
-- is "lang_mod" a character-level S0 model?
-- it seems that the "coco" model is for generating captions and the "vg" model for L_eval (see https://github.com/reubenharry/Recurrent-RSA/issues/4). The "vg" model seems to be a speaker model that behaves similarly to "coco", do we have to apply Bayes' rule to obtain a listener model for evalution (how?)
-- as discussed above, "beam search" generates many outcomes that are not correct expressions, but these incorrect expressions only appear in pragmatic caption, not in literal caption. However, according to the author's evaluation, pragmatic caption (S1) should be better than literal caption (S0)??? And greedy seems to perform better than beam search, which is also the opposite to the author's statement
-- `recursion_schemes/recursion_schemes.py`  
-    \# originally 
-    > \>\>\> state.context_sentence   
-    [[[1],  [2],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0],  [0]]]    
-    
-    \# after the following line
-    > \>\>\> state.context_sentence=context_sentence    
-    \>\>\> state.context_sentence    
-    ['^']    
-    
-    what is the point of getting the original state.context_sentence?
-
-
-------------------------------
-### 25.03.2023
-a python tool for retrieving data from Visual Genome found: [Visual Genome Python Driver](https://github.com/ranjaykrishna/visual_genome_python_driver)
-- invalid methods: 
-    - api.get_all_image_ids()
-    - api.get_image_ids_in_range(start_index=2000, end_index=2010)
-
-Visual Genome API Documentation: http://visualgenome.org/api/v0/api_endpoint_reference.html
-- invalid endpoints: 
-    - /api/v0/images/all
-    - /api/v0/image/{:id}/qa
-    - /api/v0/qa/all
-    - /api/v0/qa/:q_type
-
-
-------------------------------
-### 27.03.2023
-a resnet model that is used in build_data.py is not provided by the author, could not proceed building data
-
-
-------------------------------
-### 14.04.2023
-- try out exisiting models with seg_type = 'word' 
-
-- eval: put image to coco and get chars0, chars1 greedy     
-put the same image to vg and get chars0, chars1 beam?     
-compare prob. what if coco s0 and s1 not in vg s0 s1?     
-
-- use ts1 only, read local image 
-
-
-------------------------------
-### 15.04.2023
-- vocab pickled: vg_data/vocab.pkl (14286), vg_data/vocab_small.pkl (4987)
-- try out exisiting models with seg_type = 'word' 
-current models provided by the authors do not work with seg_type = 'word' for below error:
-> RuntimeError: Error(s) in loading state_dict for DecoderRNN:      
-	size mismatch for embed.weight: copying a param with shape torch.Size([30, 256]) from checkpoint, the shape in current model is torch.Size([14286, 256]).     
-	size mismatch for linear.weight: copying a param with shape torch.Size([30, 512]) from checkpoint, the shape in current model is torch.Size([14286, 512]).     
-	size mismatch for linear.bias: copying a param with shape torch.Size([30]) from checkpoint, the shape in current model is torch.Size([14286]).
-
-see more in seg_type_word branch
-
-
-    
