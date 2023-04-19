@@ -96,11 +96,11 @@ if __name__ == '__main__':
     #
     # for word, cnt in counter.items():
     #     print(word, "\t", cnt)
-    vocab = build_vocab('vg_data/region_descriptions.json', 10)
+    vocab = build_vocab('vg_data/region_descriptions.json', 700)
     print(len(vocab.word2idx))
     print(vocab.word2idx['<start>'])
     print(vocab.word2idx['<end>'])
-    with open('vg_data/vocab.pkl', 'wb') as f:
+    with open('vg_data/vocab_even_smaller.pkl', 'wb') as f:
         pickle.dump(vocab, f)
-    print("Total vocabulary size: %d" % len(vocab))
+    # print("Total vocabulary size: %d" % len(vocab))
 

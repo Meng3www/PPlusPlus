@@ -23,12 +23,13 @@ class EncoderCNN(nn.Module):
         self.linear.weight.data.normal_(0.0, 0.02)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, images):
+    def forward(self, images):  # images {Tensor: (1, 3, 224, 224)}
         """Extract the image feature vectors."""
-        features = self.resnet(images)
-        features = Variable(features.data)
-        features = features.view(features.size(0), -1)
-        features = self.bn(self.linear(features))
+        features = self.resnet(images)  # {Tensor: (1, 2048, 1, 1)}
+        features = Variable(features.data)  # {Tensor: (1, 2048, 1, 1)}
+        print(features.size(0))  # 1
+        features = features.view(features.size(0), -1)  # {Tensor: (1, 2048)}
+        features = self.bn(self.linear(features))  # {Tensor: (1, 256)}
         return features
     
     

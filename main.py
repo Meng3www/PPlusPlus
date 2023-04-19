@@ -45,7 +45,8 @@ speaker_model.initialize_speakers(model)
 speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)
 speaker_model.initial_speakers[0].set_features(images=urls,tf=False,rationalities=rat)
 # generate a sentence by unfolding stepwise, from the speaker: greedy unrolling used here, not beam search: much better to use beam search generally
-literal_caption = ana_greedy(
+# literal_caption = ana_greedy(
+literal_caption = ana_beam(
 	speaker_model,
 	target=0,
 	depth=0,
@@ -53,10 +54,11 @@ literal_caption = ana_greedy(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	# ,beam_width=2
+	, beam_width=2
 )
 
-pragmatic_caption = ana_greedy(
+# pragmatic_caption = ana_greedy(
+pragmatic_caption = ana_beam(
 	speaker_model,
 	target=0,
 	depth=1,
@@ -64,7 +66,7 @@ pragmatic_caption = ana_greedy(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	# ,beam_width=2
+	, beam_width=2
 )
 
 print("Literal caption:\n",literal_caption)

@@ -30,8 +30,9 @@ class RSA:
 			self.seg2idx = char_to_index
 		else:  # word
 			#todo: build vocab here
-			self.idx2seg = index_to_word
-			self.seg2idx = word_to_index
+			# self.idx2seg = index_to_word
+			# self.seg2idx = word_to_index
+			pass
 
 	def initialize_speakers(self, paths):
 		self.initial_speakers = [Model(path=path,

@@ -1,3 +1,4 @@
+import json
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -5,6 +6,10 @@ from torch.nn.utils.rnn import pack_padded_sequence
 from torch.autograd import Variable
 from utils.build_vocab import Vocabulary
 import pickle
+from os.path import isfile
+from PIL import Image
+from torchvision import transforms
+from torch.autograd import Variable
 
 
 # getting data
@@ -31,11 +36,11 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
-        resnet = models.resnet152(pretrained=True)
+        resnet = models.resnet152(weights='DEFAULT')  # BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
         self.resnet = nn.Sequential(*modules)
-        self.linear = nn.Linear(resnet.fc.in_features, embed_size)
-        self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
+        self.linear = nn.Linear(resnet.fc.in_features, embed_size)  # Linear(in_features=2048, out_features=256, bias=True)
+        self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)  # BatchNorm1d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
         self.init_weights()
         
     def init_weights(self):
@@ -43,11 +48,11 @@ class EncoderCNN(nn.Module):
         self.linear.weight.data.normal_(0.0, 0.02)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, images):
+    def forward(self, images):  # return from load_image() in utils/sample.py
         """Extract the image feature vectors."""
-        features = self.resnet(images)
-        features = Variable(features.data)
-        features = features.view(features.size(0), -1)
+        features = self.resnet(images)  # {Tensor: (1, 2048, 1, 1)}
+        features = Variable(features.data)  # {Tensor: (1, 2048, 1, 1)}
+        features = features.view(features.size(0), -1)  # {Tensor: (1, 2048)}
         features = self.bn(self.linear(features))
         return features
     
@@ -69,7 +74,7 @@ class DecoderRNN(nn.Module):
         self.linear.weight.data.uniform_(-0.1, 0.1)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, features, captions, hidden):
+    def forward(self, features, captions):
         """
         Decode image feature vectors and generates captions.
         features: vector
@@ -83,12 +88,14 @@ class DecoderRNN(nn.Module):
         # packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
         # output, (h_n, c_n)
         # hiddens, _ = self.lstm(packed)
-        output, (hidden, cell) = self.lstm(embeddings, hidden)
+        # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
+        # Defaults to zeros if (h_0, c_0) is not provided.
+        output, _ = self.lstm(embeddings)
         # get LSTM outputs
         # lstm_output, (h, c) = self.lstm(x, hidden)
 
         predictions = self.linear(output)
-        return torch.nn.functional.log_softmax(predictions, dim=1), hidden
+        return torch.nn.functional.log_softmax(predictions, dim=1)
 
         ##################### 06c-char-level-LSTM.py
         # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
@@ -130,38 +137,83 @@ embed_size=256
 hidden_size=512
 num_layers=1
 
+
 def getTrainingPair():
     """
     get training item in desired input format (vectors of indices)
-    captions_clean: captions tokenised, lower case, as a list
     :return:
     features: vector after pre-trained CNN
     captions: to be used in embeddings = self.embed(captions)
     """
     #todo:
-
-    # read the picture, get features
     cnn = EncoderCNN(embed_size)
-    features = cnn.forward(images)
-
-    # read captions, get index
-    with open("data/vocab.pkl", 'rb') as f:
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.485, 0.456, 0.406),
+                             (0.229, 0.224, 0.225))])
+    json_data = json.loads(open('vg_data/region_descriptions.json', 'r').read())
+    with open("vg_data/vocab_small.pkl", 'rb') as f:
         vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
-    # vocab.idx2word or a list of index?
-    captions = [SOSIndex] + [vocab.word2idx[word] for word in captions_clean] + [EOSIndex]
-    # captions = torch.tensor(captions)
-    return features, captions
+        # vocab.idx2word or a list of index?
+
+    for each_dict in json_data:
+        # vg_data/VG_100K_2/71.jpg
+        file_path = "vg_data/VG_100K_2/" + str(each_dict["id"]) + ".jpg"
+        if isfile(file_path):
+            # the picture exists
+            im = Image.open(file_path)
+            # each im contains a list of regions
+            reg_list = each_dict['regions']
+            for each_region in reg_list:
+                # {"region_id": int, "width": int, "height": int, "image_id": int, "phrase": str, "y": int, "x": int}
+                left = each_region["x"]  # x
+                top = each_region["y"]  # y
+                right = each_region["x"] + each_region["width"]  # x+width
+                bottom = each_region["y"] + each_region["height"]  # y+height
+                im1 = im.crop((left, top, right, bottom))
+                tokens = each_region['phrase'].lower().split(' ')
+                # im1.show()
+                # resize
+                im1 = im1.resize([224, 224], Image.Resampling.LANCZOS)
+                # transform (1, 3, 224, 224)
+                im1 = transform(im1).unsqueeze(0)
+                # feed into cnn
+                # self.encoder(to_var(load_image(url, self.transform)))
+                # to_var() from utils/sample.py
+                if torch.cuda.is_available():
+                    im1 = im1.cuda()
+                features = cnn(Variable(im1))  # cnn.forward(Variable(im1))
+
+                # read captions, get index
+                captions = [vocab.word2idx["<start>"]]
+                # + [vocab.word2idx[word] for word in tokens]]
+                len_token = 0
+                for word in tokens:
+                    if word in vocab.word2idx:
+                        captions.append(vocab.word2idx[word])
+                    else:
+                        captions.append(vocab.word2idx["<unk>"])
+                    len_token += 1  # 1 - 10
+                    if len_token > 9:
+                        break
+                # padding
+                while len_token <= 10:
+                    captions.append(vocab.word2idx["<pad>"])
+                    len_token += 1
+                captions.append(vocab.word2idx["<end>"])
+                # captions = torch.tensor(captions)
+                yield features, captions
+
 
 def train(features, captions):
     # get a fresh hidden layer
-    hidden = lstm.initHidden()
+    # hidden = lstm.initHidden()
     # zero the gradients
     optimizer.zero_grad()
     # run sequence
-    # def forward(self, features, captions, lengths):
-    predictions, hidden = lstm(features, captions, hidden)
+    # def forward(self, features, captions)
+    predictions = lstm(features, captions)
     # compute loss (NLLH)
-    ##################### what is the correct argument captions[1:len(name)]?
     loss = criterion(predictions[:-1], captions[1:len(captions)])
     # perform backward pass
     loss.backward()
@@ -179,37 +231,41 @@ if __name__ == '__main__':
     # with open("test/test.pkl", 'rb') as f:
     #     vocab = pickle.load(f)
     # print(vocab)
+    ###############################
 
     # model training
-    lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size, vocab_size=0, num_layers=num_layers)
-                # cat_embedding_size=32, n_cat=n_categories, ####### features
-                # char_embedding_size=embed_size,
-                # n_char=vocab_size,
-                # output_size=vocab_size,
-    # training objective
-    criterion = nn.NLLLoss(reduction='sum')
-    # learning rate
-    learning_rate = 0.005
-    # optimizer
-    optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
-    # training parameters
-    n_iters = 50000  #######?
-    print_every = 5000
-    plot_every = 500
-    all_losses = []
-    total_loss = 0  # will be reset every 'plot_every' iterations
-
-    # start = time.time()
-
-    for iter in range(1, n_iters + 1):
-        loss = train(features=0, captions=0)
-        total_loss += loss
-
-        if iter % plot_every == 0:
-            all_losses.append(total_loss / plot_every)
-            total_loss = 0
-            print(all_losses)
+    # lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size, vocab_size=0, num_layers=num_layers)
+    #             # cat_embedding_size=32, n_cat=n_categories, ####### features
+    #             # char_embedding_size=embed_size,
+    #             # n_char=vocab_size,
+    #             # output_size=vocab_size,
+    # # training objective
+    # criterion = nn.NLLLoss(reduction='sum')
+    # # learning rate
+    # learning_rate = 0.005
+    # # optimizer
+    # optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
+    # # training parameters
+    # n_iters = 50000
+    # print_every = 5000
+    # plot_every = 500
+    # all_losses = []
+    # total_loss = 0  # will be reset every 'plot_every' iterations
+    #
+    # # start = time.time()
+    #
+    # for i in range(1, n_iters + 1):
+    #     loss = train(*getTrainingPair())
+    #     total_loss += loss
+    #
+    #     if i % plot_every == 0:
+    #         all_losses.append(total_loss / plot_every)
+    #         total_loss = 0
+    #         print(all_losses)
     ##############################
+
+    for i in range(10):
+        print(*getTrainingPair())
 
 
 
