@@ -179,7 +179,6 @@ def getTrainingPair():
                 right = each_region["x"] + each_region["width"]  # x+width
                 bottom = each_region["y"] + each_region["height"]  # y+height
                 im1 = im.crop((left, top, right, bottom))
-                tokens = each_region['phrase'].lower().split(' ')
                 # im1.show()
                 # resize
                 im1 = im1.resize([224, 224], Image.Resampling.LANCZOS)
@@ -193,6 +192,7 @@ def getTrainingPair():
                 features = cnn(Variable(im1))  # cnn.forward(Variable(im1))
 
                 # read captions, get index
+                tokens = each_region['phrase'].lower().split(' ')
                 captions = [vocab.word2idx["<start>"]]
                 # + [vocab.word2idx[word] for word in tokens]]
                 len_token = 0
@@ -204,11 +204,11 @@ def getTrainingPair():
                     len_token += 1  # 1 - 10
                     if len_token > 9:
                         break
+                captions.append(vocab.word2idx["<end>"])
                 # padding
                 while len_token < 10:
                     captions.append(vocab.word2idx["<pad>"])
                     len_token += 1
-                captions.append(vocab.word2idx["<end>"])
                 # captions = torch.tensor(captions)
                 yield features, captions
 
@@ -232,6 +232,7 @@ def train(features, captions):
 
 
 if __name__ == '__main__':
+    import time
 
     # temp_dict = ["a", "list", "of", "words"]
     # with open("test/test.pkl", 'wb') as f:
@@ -272,8 +273,16 @@ if __name__ == '__main__':
     #         print(all_losses)
     ##############################
 
-    for i in range(10):
-        print(*getTrainingPair())
-
-
+    last_time = begin = time.time()
+    count = 0
+    for i in getTrainingPair():
+        feat, cap = i
+        count += 1
+        if count % 10 == 0:
+            print(count)
+            print(time.time() - last_time)
+            last_time = time.time()
+        if count > 1000:
+            break
+    print('{0:30} {1}'.format('finished in', time.time() - begin))
 
