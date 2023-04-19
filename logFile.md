@@ -2,7 +2,10 @@
 - the encoders and decoders provided by the author are different, even though some have the same size
 - vg-encoder-5-3000.pkl borrowed to get features from image
 - getTrainingPair() as generator is very slow (10 pairs/5 sec), if used directly during the training, it could last a long time and time out more than needed. 
-- [Datasets & DataLoaders](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#datasets-dataloaders): 
+- [Datasets & DataLoaders](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#datasets-dataloaders):     
+pre-process dataset and get all features and captions     
+append batches of the results in a pkl     
+create own dataset class and use dataloader
 
 
 ------------------------------
