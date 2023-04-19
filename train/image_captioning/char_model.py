@@ -11,7 +11,7 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
-        resnet = models.resnet152(pretrained=True)
+        resnet = models.resnet152(weights='DEFAULT')
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, embed_size)
@@ -27,7 +27,7 @@ class EncoderCNN(nn.Module):
         """Extract the image feature vectors."""
         features = self.resnet(images)  # {Tensor: (1, 2048, 1, 1)}
         features = Variable(features.data)  # {Tensor: (1, 2048, 1, 1)}
-        print(features.size(0))  # 1
+        # print(features.size(0))  # 1
         features = features.view(features.size(0), -1)  # {Tensor: (1, 2048)}
         features = self.bn(self.linear(features))  # {Tensor: (1, 256)}
         return features
@@ -37,9 +37,9 @@ class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
-        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.embed = nn.Embedding(vocab_size, embed_size)  # Embedding(30, 256)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)  # LSTM(256, 512, batch_first=True)
+        self.linear = nn.Linear(hidden_size, vocab_size)  # Linear(in_features=512, out_features=30, bias=True)
         self.init_weights()
     
     def init_weights(self):

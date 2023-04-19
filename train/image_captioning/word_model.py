@@ -147,6 +147,10 @@ def getTrainingPair():
     """
     #todo:
     cnn = EncoderCNN(embed_size)
+    cnn.eval()
+    # self.encoder.load_state_dict(torch.load(self.encoder_path, map_location={'cuda:0': 'cpu'}))
+    # 		if torch.cuda.is_available():
+    # 			self.encoder.cuda()
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),

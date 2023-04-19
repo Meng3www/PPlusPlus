@@ -13,7 +13,7 @@ import re
 def to_var(x, volatile=False):
     if torch.cuda.is_available():
         x = x.cuda()
-    return Variable(x, volatile=volatile)
+    return Variable(x)
 
 
 
@@ -23,7 +23,7 @@ def load_image_from_path(path, transform=None):
 
 
     image = Image.open(path)
-    image = image.resize([224, 224], Image.LANCZOS)
+    image = image.resize([224, 224], Image.Resampling.LANCZOS)
     # image = image.crop([0,0,224,224])
     if transform is not None:
         image = transform(image).unsqueeze(0)
