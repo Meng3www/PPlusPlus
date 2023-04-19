@@ -12,9 +12,13 @@ class EncoderCNN(nn.Module):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
         resnet = models.resnet152(weights='DEFAULT')
+        # Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        # BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        self.resnet = nn.Sequential(*modules)
+        self.resnet = nn.Sequential(*modules)  # {sequential: 9}
+        # Linear(in_features=2048, out_features=256, bias=True)
         self.linear = nn.Linear(resnet.fc.in_features, embed_size)
+        # BatchNorm1d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
         self.init_weights()
         

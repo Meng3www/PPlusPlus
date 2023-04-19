@@ -36,11 +36,14 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
-        resnet = models.resnet152(weights='DEFAULT')  # BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        # BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        resnet = models.resnet152(weights='DEFAULT')
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
         self.resnet = nn.Sequential(*modules)
-        self.linear = nn.Linear(resnet.fc.in_features, embed_size)  # Linear(in_features=2048, out_features=256, bias=True)
-        self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)  # BatchNorm1d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+        # Linear(in_features=2048, out_features=256, bias=True)
+        self.linear = nn.Linear(resnet.fc.in_features, embed_size)
+        # BatchNorm1d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
+        self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
         self.init_weights()
         
     def init_weights(self):
@@ -53,7 +56,7 @@ class EncoderCNN(nn.Module):
         features = self.resnet(images)  # {Tensor: (1, 2048, 1, 1)}
         features = Variable(features.data)  # {Tensor: (1, 2048, 1, 1)}
         features = features.view(features.size(0), -1)  # {Tensor: (1, 2048)}
-        features = self.bn(self.linear(features))
+        features = self.bn(self.linear(features))  # {Tensor: (1, 256)}
         return features
     
     
@@ -149,8 +152,9 @@ def getTrainingPair():
     cnn = EncoderCNN(embed_size)
     cnn.eval()
     # self.encoder.load_state_dict(torch.load(self.encoder_path, map_location={'cuda:0': 'cpu'}))
-    # 		if torch.cuda.is_available():
-    # 			self.encoder.cuda()
+    cnn.load_state_dict(torch.load('data/models/vg-encoder-5-3000.pkl', map_location={'cuda:0': 'cpu'}))
+    if torch.cuda.is_available():
+        cnn.cuda()
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406),
@@ -185,7 +189,7 @@ def getTrainingPair():
                 # self.encoder(to_var(load_image(url, self.transform)))
                 # to_var() from utils/sample.py
                 if torch.cuda.is_available():
-                    im1 = im1.cuda()
+                    im1 = im1.cuda()  # {Tensor: (1, 3, 224, 224)}
                 features = cnn(Variable(im1))  # cnn.forward(Variable(im1))
 
                 # read captions, get index
@@ -201,7 +205,7 @@ def getTrainingPair():
                     if len_token > 9:
                         break
                 # padding
-                while len_token <= 10:
+                while len_token < 10:
                     captions.append(vocab.word2idx["<pad>"])
                     len_token += 1
                 captions.append(vocab.word2idx["<end>"])
