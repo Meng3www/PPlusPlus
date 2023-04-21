@@ -7,9 +7,9 @@ class RSA_World:
 		rationality="DEFAULTBAD",
 		):
 
-		self.target=target
-		self.rationality=rationality
-		self.speaker=speaker
+		self.target=target  # 0
+		self.rationality=rationality  # 0
+		self.speaker=speaker  # 0
 
 	def __hash__(self):
 		return hash((self.target,self.speaker,self.rationality))

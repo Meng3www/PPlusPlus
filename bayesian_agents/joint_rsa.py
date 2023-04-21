@@ -105,7 +105,9 @@ class RSA:
 		if depth==0:
 			# print("S0")
 			# print("TIMESTEP:",state.timestep,"INITIAL SPEAKER CALL")
-
+			# state {context_sentence: [], world_priors: ndarray: (61, 2, 1, 1) [[[[-0.69314718]],,  [[-0.69314718]]],,, ...}
+			# world <World image:0 rationality:0 speaker:0>
+			# self.initial_speakers[world.speaker]: Model with preloaded para
 			return self.initial_speakers[world.speaker].forward(state=state,world=world)
 			
 		else:

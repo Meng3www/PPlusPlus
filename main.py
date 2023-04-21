@@ -42,8 +42,8 @@ initial_world_prior = make_initial_prior(initial_image_prior,initial_rationality
 speaker_model = RSA(seg_type="char",tf=False)
 speaker_model.initialize_speakers(model)
 # set the possible images and rationalities
-speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)
-speaker_model.initial_speakers[0].set_features(images=urls,tf=False,rationalities=rat)
+speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)  # list: 2, 2 tensors of shape (1, 256)
+speaker_model.initial_speakers[0].set_features(images=urls,tf=False,rationalities=rat)  # list: 2, 2 tensors of shape (1, 256)
 # generate a sentence by unfolding stepwise, from the speaker: greedy unrolling used here, not beam search: much better to use beam search generally
 # literal_caption = ana_greedy(
 literal_caption = ana_beam(

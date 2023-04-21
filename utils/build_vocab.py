@@ -3,7 +3,7 @@ import pickle
 import argparse
 import json
 from collections import Counter
-from utils.pycocotools.coco import COCO
+# from utils.pycocotools.coco import COCO
 
 
 class Vocabulary(object):

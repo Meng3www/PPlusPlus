@@ -12,24 +12,6 @@ from torchvision import transforms
 from torch.autograd import Variable
 
 
-# getting data
-
-# data cleaning
-
-# getting the feature vector from images
-
-# load data for training
-
-# tokenise
-	# utils/build_vocab.py
-
-# CNN-RNN model
-	# Feature: train/image_captioning/char_model.py
-	# Sequence
-	# Decoder
-# training
-	# train/Model.py
-
 
 
 class EncoderCNN(nn.Module):
@@ -77,28 +59,29 @@ class DecoderRNN(nn.Module):
         self.linear.weight.data.uniform_(-0.1, 0.1)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, features, captions):
+    def forward(self, features, captions, hidden):
         """
         Decode image feature vectors and generates captions.
         features: vector
         captions: tensor
         lengths: hidden?
         """
-        embeddings = self.embed(captions)
+        captions = torch.tensor(captions, dtype=torch.int64)
+        embeddings = self.embed(captions)  # Tensor: (12, 256)
+        # print(features.shape)  # torch.Size([1, 256])
+        # print(features.unsqueeze(1).shape)  # torch.Size([1, 1, 256])
+        # print(embeddings.shape)  # torch.Size([12, 256])
         embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
         # embeddings – padded batch of variable length sequences.
         # lengths – list of sequence lengths of each batch element (must be on the CPU if provided as a tensor)
         # packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
-        # output, (h_n, c_n)
-        # hiddens, _ = self.lstm(packed)
-        # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
         # Defaults to zeros if (h_0, c_0) is not provided.
-        output, _ = self.lstm(embeddings)
+        output, (hidden, cell) = self.lstm(embeddings, hidden)
         # get LSTM outputs
         # lstm_output, (h, c) = self.lstm(x, hidden)
 
         predictions = self.linear(output)
-        return torch.nn.functional.log_softmax(predictions, dim=1)
+        return torch.nn.functional.log_softmax(predictions, dim=1), hidden
 
         ##################### 06c-char-level-LSTM.py
         # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
@@ -133,12 +116,13 @@ class DecoderRNN(nn.Module):
         return sampled_ids.squeeze()
 
     def init_hidden(self):
-        return torch.zeros(1, self.hidden_size)
+        return torch.zeros(1, hidden_size)
 
 
 embed_size=256
 hidden_size=512
 num_layers=1
+vocab_size=4987
 
 
 def getTrainingPair():
@@ -162,7 +146,6 @@ def getTrainingPair():
     json_data = json.loads(open('vg_data/region_descriptions.json', 'r').read())
     with open("vg_data/vocab_small.pkl", 'rb') as f:
         vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
-        # vocab.idx2word or a list of index?
 
     for each_dict in json_data:
         # vg_data/VG_100K_2/71.jpg
@@ -215,14 +198,18 @@ def getTrainingPair():
 
 def train(features, captions):
     # get a fresh hidden layer
-    # hidden = lstm.initHidden()
+    hidden = lstm.init_hidden()
     # zero the gradients
     optimizer.zero_grad()
+    loss = 0
     # run sequence
-    # def forward(self, features, captions)
-    predictions = lstm(features, captions)
-    # compute loss (NLLH)
-    loss = criterion(predictions[:-1], captions[1:len(captions)])
+    for i in range(captions.size(0)-1):
+        caption = torch.tensor([[captions[i]]])
+        # def forward(self, features, captions)
+        output, hidden = lstm(features, caption, hidden)
+        # compute loss (NLLH)
+        l = criterion(output, captions[i+1])
+        loss += l
     # perform backward pass
     loss.backward()
     # perform optimization
@@ -240,49 +227,51 @@ if __name__ == '__main__':
     # with open("test/test.pkl", 'rb') as f:
     #     vocab = pickle.load(f)
     # print(vocab)
+
     ###############################
 
+    # # last_time = begin = time.time()
+    # count = 0
+    # for i in getTrainingPair():
+    #     feat, cap = i
+    #     count += 1
+    #     # if count % 10 == 0:
+    #       #  print(count)
+    #        # print(time.time() - last_time)
+    #     print(feat.shape)
+    #     print(cap)
+    #         #last_time = time.time()
+    #     if count > 0:
+    #         break
+    # # print('{0:30} {1}'.format('finished in', time.time() - begin))
+
+    ###################################
     # model training
-    # lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size, vocab_size=0, num_layers=num_layers)
-    #             # cat_embedding_size=32, n_cat=n_categories, ####### features
-    #             # char_embedding_size=embed_size,
-    #             # n_char=vocab_size,
-    #             # output_size=vocab_size,
-    # # training objective
-    # criterion = nn.NLLLoss(reduction='sum')
-    # # learning rate
-    # learning_rate = 0.005
-    # # optimizer
-    # optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
-    # # training parameters
-    # n_iters = 50000
-    # print_every = 5000
-    # plot_every = 500
-    # all_losses = []
-    # total_loss = 0  # will be reset every 'plot_every' iterations
-    #
-    # # start = time.time()
-    #
-    # for i in range(1, n_iters + 1):
-    #     loss = train(*getTrainingPair())
-    #     total_loss += loss
-    #
-    #     if i % plot_every == 0:
-    #         all_losses.append(total_loss / plot_every)
-    #         total_loss = 0
-    #         print(all_losses)
+    lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size, vocab_size=vocab_size, num_layers=num_layers)
+    # training objective
+    criterion = nn.NLLLoss(reduction='sum')
+    # learning rate
+    learning_rate = 0.005
+    # optimizer
+    optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
+    # training parameters
+    n_iters = 50000
+    print_every = 5000
+    plot_every = 500
+    all_losses = []
+    total_loss = 0  # will be reset every 'plot_every' iterations
+
+    # start = time.time()
+    cap = [0 for i in range(12)]
+    cap = torch.as_tensor(cap)
+    feat = torch.zeros(1, 256)
+    for i in range(1, 2):  # n_iters + 1):
+        loss = train(feat, cap)
+        total_loss += loss
+
+        if i % plot_every == 0:
+            all_losses.append(total_loss / plot_every)
+            total_loss = 0
+            print(all_losses)
     ##############################
-
-    last_time = begin = time.time()
-    count = 0
-    for i in getTrainingPair():
-        feat, cap = i
-        count += 1
-        if count % 10 == 0:
-            print(count)
-            print(time.time() - last_time)
-            last_time = time.time()
-        if count > 1000:
-            break
-    print('{0:30} {1}'.format('finished in', time.time() - begin))
-
+    # RuntimeError: Tensors must have same number of dimensions: got 3 and 2

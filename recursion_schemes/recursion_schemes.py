@@ -125,11 +125,11 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 	state = RSA_State(initial_world_prior, listener_rationality=listener_rationality)
 	# state.image_priors[:]=img_prior
 
-	context_sentence = start_from
-	state.context_sentence=context_sentence
-
+	context_sentence = start_from  # []
+	state.context_sentence=context_sentence  # []
+	# <World image:0 rationality:0 speaker:0>
 	world=RSA_World(target=target,rationality=speaker_rationality,speaker=speaker)
-
+	# state.world_priors ndarray: (61, 2, 1, 1) [[[[-0.69314718]],,  [[-0.69314718]]],,, ...
 	sent_worldprior_prob = [(state.context_sentence,state.world_priors,0.0)]
 
 	final_sentences=[]
@@ -162,16 +162,16 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 			
 			for seg,prob in enumerate(np.squeeze(s)):
 
-				new_sentence = copy.deepcopy(sent)
+				new_sentence = copy.deepcopy(sent)  # []
 
 				# conditional to deal with captions longer than max sentence length
 				# if state.timestep<max_sentence_length+1:
-				new_sentence += [rsa.idx2seg[seg]]
+				new_sentence += [rsa.idx2seg[seg]]  # ['&'] and loop over the whole vocab
 				# else: new_sentence = np.expand_dims(np.expand_dims(np.concat([np.squeeze(new_sentence)[:-1],[seg]],axis=0),0),-1)
 				
 				state.context_sentence = new_sentence
 
-				new_prob = (prob*(1/math.pow(state.timestep,decay_rate)))+old_prob
+				new_prob = (prob*(1/math.pow(state.timestep,decay_rate)))+old_prob  # -24.202415466308594
 
 
 				# print("beam listener",rsa.word2ord[seg], l)
@@ -179,10 +179,11 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 				new_sent_worldprior_prob.append((new_sentence,worldpriors,new_prob))
 
 		rsa.flush_cache()
+		# list: (before 1, after 30) tuples of (sent worldprior, prob)
 		sent_worldprior_prob = sorted(new_sent_worldprior_prob,key=lambda x:x[-1],reverse=True)
-
+		# cut_rate: 1
 		if state.timestep%cut_rate == 0:
-			# cut down to size
+			# cut down to size of 2
 			sent_worldprior_prob = sent_worldprior_prob[:beam_width]
 			new_sent_worldprior_prob = []
 			
