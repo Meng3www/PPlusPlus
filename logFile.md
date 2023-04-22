@@ -1,5 +1,5 @@
 ### 22.04.2023
-test train() lr=0.001:
+- test train() lr=0.001:
 > n_epoch = 50      
 > print_every = 5        
 
@@ -18,7 +18,7 @@ result: 2h21m54s (robot verification pops up around 100m later)
 |50 	|1833252.8137487597 	|851.7524993419647|     
 
 test train() lr=0.005:
-result: 43m1s
+result: manually stopped after 43m1s
 |epochs	|loss			|time|     
 | ------| --------------------- | --------------- |     
 |5 	|4937965.998798579 	|855.2068405151367|     
@@ -34,7 +34,9 @@ result: 1h8m41s
 |15 	|1557936.1527801761 	|856.0033431053162|     
 |20 	|1345679.0653578276 	|856.8627445697784|   
 
-cannot currently connect to a GPU due to usage limits in Colab
+forced to stop for `cannot currently connect to a GPU due to usage limits in Colab`
+
+- coco vocab pickled: coco_data/vocab_coco_4533.pkl, coco_data/vocab_coco_6336.pkl
 
 
 ------------------------------
