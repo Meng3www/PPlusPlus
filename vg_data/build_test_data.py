@@ -3,6 +3,7 @@
 # namely, man, person, woman, building, sign, table, bus, window, sky, and tree.
 # For more details see Cohn-Gordon et al. (2018), p. 4.
 
+import os
 import json
 import pickle
 from PIL import Image as PIL_Image
@@ -27,9 +28,6 @@ def get_entries_containing_object(object):
                 break
 
         for s in image['regions']:
-            if len(id_to_caption) >= 100:
-                break
-
             # break the region description into tokens and 
             # check if the object is in the description
             tokens = s['phrase'].lower().split(' ')
@@ -48,6 +46,7 @@ def get_entries_containing_object(object):
                     region_id = str(s['region_id'])
                     box = edit_region(height,width,x_coordinate,y_coordinate)
                     id_to_caption[img_id+'_'+region_id] = (sentence,box)
+                    break
 
     print(len(id_to_caption))
     return id_to_caption
@@ -116,38 +115,27 @@ def get_region_from_image(id, box):
     cropped_img = img.crop(box)
     # resize into square
     resized_img = cropped_img.resize([224,224],PIL_Image.ANTIALIAS)
-    resized_img.show()
 
     return resized_img
     
 
 
 if __name__ == "__main__":
-    # print("MAKING id_to_caption")
-    # make_id_to_caption()
-
-    # id_to_caption = pickle.load(open("vg_data/id_to_caption",'rb'))
-    # print("len id_to_caption",len(id_to_caption))
-
-    # for id, caption_vector in id_to_caption.items():
-        # do something
-    #    pass
-
-
-    # pickle.dump(get_entries_containing_object('man'), open('vg_data/ts1/man','wb'))
-    # pickle.dump(get_entries_containing_object('person'), open('vg_data/ts1/person','wb'))
-    # pickle.dump(get_entries_containing_object('woman'), open('vg_data/ts1/woman','wb'))
-    # pickle.dump(get_entries_containing_object('building'), open('vg_data/ts1/building','wb'))
-    # pickle.dump(get_entries_containing_object('sign'), open('vg_data/ts1/sign','wb'))
-    # pickle.dump(get_entries_containing_object('table'), open('vg_data/ts1/table','wb'))
-    # pickle.dump(get_entries_containing_object('bus'), open('vg_data/ts1/bus','wb'))
-    # pickle.dump(get_entries_containing_object('window'), open('vg_data/ts1/window','wb'))
-    # pickle.dump(get_entries_containing_object('sky'), open('vg_data/ts1/sky','wb'))
-    # pickle.dump(get_entries_containing_object('tree'), open('vg_data/ts1/tree','wb'))
+    # build test dataset 1
+    for object in ["man", "person", "woman", "building", "sign", "table", "bus", "window", "sky", "tree"]:
+        pickle.dump(get_entries_containing_object(object), open('vg_data/ts1/'+object,'wb'))
 
     # inspect the pickle file
-    id_to_caption = pickle.load(open("vg_data/ts1/tree",'rb'))
+    id_to_caption = pickle.load(open("vg_data/ts1/woman",'rb'))
     print(list(id_to_caption.items())[:10])
 
     # inspect the image region
-    get_region_from_image('149_4936249', (181, 1, 798, 618))
+    img = get_region_from_image('149_4936249', (181, 1, 798, 618))
+    img.show()
+    
+    # crop out the corresponding image regions for testing
+    for filename in os.listdir("vg_data/ts1"):
+        id_to_image = pickle.load(open("vg_data/ts1/" + filename, "rb"))
+        for id, caption in id_to_image.items():
+            img = get_region_from_image(id, caption[1])
+            img.save("vg_data/ts1_img/" + filename + "/" + id, "png")
