@@ -1,4 +1,5 @@
 import json
+import nltk
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -10,8 +11,6 @@ from os.path import isfile
 from PIL import Image
 from torchvision import transforms
 from torch.autograd import Variable
-
-
 
 
 class EncoderCNN(nn.Module):
@@ -178,7 +177,8 @@ def getTrainingPair():
                 features = cnn(Variable(im1))  # cnn.forward(Variable(im1))
 
                 # read captions, get index
-                tokens = each_region['phrase'].lower().split(' ')
+                caption = each_region['phrase']
+                tokens = nltk.tokenize.word_tokenize(caption.lower())
                 captions = [vocab.word2idx["<start>"]]
                 # + [vocab.word2idx[word] for word in tokens]]
                 len_token = 0

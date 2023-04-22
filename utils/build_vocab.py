@@ -54,6 +54,30 @@ def build_vocab(json_file, threshold):
         vocab.add_word(word)
     return vocab
 
+def build_vocab_coco(json_file, threshold):
+    """Build a simple vocabulary wrapper with coco-train2014 (83k)"""
+    json_data = json.loads(open(json_file, 'r').read())
+    counter = Counter()
+    for each_img in json_data['annotations']:
+        # {'image_id': 318556, 'caption': 'A very clean and well decorated empty bathroom'}
+        caption = each_img['caption']
+        tokens = nltk.tokenize.word_tokenize(caption.lower())
+        counter.update(tokens)
+
+    # If the word frequency is less than 'threshold', then the word is discarded.
+    words = [word for word, cnt in counter.items() if cnt >= threshold]  # 24916
+    # Creates a vocab wrapper and add some special tokens.
+    vocab = Vocabulary()
+    vocab.add_word('<pad>')
+    vocab.add_word('<start>')
+    vocab.add_word('<end>')
+    vocab.add_word('<unk>')
+
+    # Adds the words to the vocabulary.
+    for word in words:
+        vocab.add_word(word)
+    return vocab
+
 def main(args):
     vocab = build_vocab(json=args.caption_path,
                         threshold=args.threshold)
@@ -96,11 +120,17 @@ if __name__ == '__main__':
     #
     # for word, cnt in counter.items():
     #     print(word, "\t", cnt)
-    vocab = build_vocab('vg_data/region_descriptions.json', 700)
-    print(len(vocab.word2idx))
-    print(vocab.word2idx['<start>'])
-    print(vocab.word2idx['<end>'])
-    with open('vg_data/vocab_even_smaller.pkl', 'wb') as f:
-        pickle.dump(vocab, f)
-    # print("Total vocabulary size: %d" % len(vocab))
+    # vocab = build_vocab('vg_data/region_descriptions.json', 700)
+    # print(len(vocab.word2idx))
+    # print(vocab.word2idx['<start>'])
+    # print(vocab.word2idx['<end>'])
+    # with open('vg_data/vocab_even_smaller.pkl', 'wb') as f:
+    #     pickle.dump(vocab, f)
+    #################################################
+    vocab_coco = build_vocab_coco('coco_data/annotations_trainval2014/captions_train2014.json', 10)
+    print(len(vocab_coco.word2idx))  # 6336
+    print(vocab_coco.word2idx['<start>'])
+    print(vocab_coco.word2idx['<end>'])
+    with open('coco_data/vocab_coco_6336.pkl', 'wb') as f:
+        pickle.dump(vocab_coco, f)
 
