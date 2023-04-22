@@ -126,6 +126,7 @@ if __name__ == "__main__":
         pickle.dump(get_entries_containing_object(object), open('vg_data/ts1/'+object,'wb'))
 
     # inspect the pickle file
+
     id_to_caption = pickle.load(open("vg_data/ts1/woman",'rb'))
     print(list(id_to_caption.items())[:10])
 
@@ -139,3 +140,4 @@ if __name__ == "__main__":
         for id, caption in id_to_image.items():
             img = get_region_from_image(id, caption[1])
             img.save("vg_data/ts1_img/" + filename + "/" + id, "png")
+

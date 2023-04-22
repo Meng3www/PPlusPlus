@@ -11,10 +11,14 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
         """Load the pretrained ResNet-152 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
-        resnet = models.resnet152(pretrained=True)
+        resnet = models.resnet152(weights='DEFAULT')
+        # Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        # BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        self.resnet = nn.Sequential(*modules)
+        self.resnet = nn.Sequential(*modules)  # {sequential: 9}
+        # Linear(in_features=2048, out_features=256, bias=True)
         self.linear = nn.Linear(resnet.fc.in_features, embed_size)
+        # BatchNorm1d(256, eps=1e-05, momentum=0.01, affine=True, track_running_stats=True)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
         self.init_weights()
         
@@ -23,12 +27,13 @@ class EncoderCNN(nn.Module):
         self.linear.weight.data.normal_(0.0, 0.02)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, images):
+    def forward(self, images):  # images {Tensor: (1, 3, 224, 224)}
         """Extract the image feature vectors."""
-        features = self.resnet(images)
-        features = Variable(features.data)
-        features = features.view(features.size(0), -1)
-        features = self.bn(self.linear(features))
+        features = self.resnet(images)  # {Tensor: (1, 2048, 1, 1)}
+        features = Variable(features.data)  # {Tensor: (1, 2048, 1, 1)}
+        # print(features.size(0))  # 1
+        features = features.view(features.size(0), -1)  # {Tensor: (1, 2048)}
+        features = self.bn(self.linear(features))  # {Tensor: (1, 256)}
         return features
     
     
@@ -36,9 +41,9 @@ class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers):
         """Set the hyper-parameters and build the layers."""
         super(DecoderRNN, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
-        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.embed = nn.Embedding(vocab_size, embed_size)  # Embedding(30, 256)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)  # LSTM(256, 512, batch_first=True)
+        self.linear = nn.Linear(hidden_size, vocab_size)  # Linear(in_features=512, out_features=30, bias=True)
         self.init_weights()
     
     def init_weights(self):

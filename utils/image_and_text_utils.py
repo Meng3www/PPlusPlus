@@ -257,21 +257,21 @@ def vectorize_caption(sentence):
     # add start and stop token
     sentence = start_token["char"] + sentence + stop_token["char"]
     # sentence is now a list
-    sentence = list(sentence)
+    sentence = list(sentence)  # ['^', '$']
     # add padding
     while len(sentence) < max_sentence_length+2:
-        sentence.append(pad_token)
+        sentence.append(pad_token)  # list: 62
 
     # caption_in: all characters except the last one 
     caption_in = sentence[:-1]
     # caption_out: all characters except the first one
     caption_out = sentence[1:]
     
-    caption_in = np.asarray([char_to_index[x] for x in caption_in])
-    caption_out = np.expand_dims(np.asarray([char_to_index[x] for x in caption_out]),0)
-    one_hot = np.zeros((caption_out.shape[1], len(sym_set)))
-    one_hot[np.arange(caption_out.shape[1]), caption_out] = 1
-    caption_out = one_hot
+    caption_in = np.asarray([char_to_index[x] for x in caption_in])  # ndarray: (61, ), [1 2 0 ... 0]
+    caption_out = np.expand_dims(np.asarray([char_to_index[x] for x in caption_out]),0)  # ndarray: (1, 61)
+    one_hot = np.zeros((caption_out.shape[1], len(sym_set)))  # ndarray: (61, 30)
+    one_hot[np.arange(caption_out.shape[1]), caption_out] = 1  #
+    caption_out = one_hot  # [[0. 0. 1. ... 0. 0. 0.], [1. 0. 0. ... 0. 0. 0.], [1. 0. 0. ... 0. 0. 0.], ..., [1. 0. 0. ... 0. 0. 0.]]
     return caption_in,caption_out
 
 # takes (1,39,1) and returns string

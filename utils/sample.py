@@ -13,7 +13,7 @@ import re
 def to_var(x, volatile=False):
     if torch.cuda.is_available():
         x = x.cuda()
-    return Variable(x, volatile=volatile)
+    return Variable(x)
 
 
 
@@ -23,7 +23,7 @@ def load_image_from_path(path, transform=None):
 
 
     image = Image.open(path)
-    image = image.resize([224, 224], Image.LANCZOS)
+    image = image.resize([224, 224], Image.Resampling.LANCZOS)
     # image = image.crop([0,0,224,224])
     if transform is not None:
         image = transform(image).unsqueeze(0)
@@ -41,7 +41,7 @@ def load_image(url, transform=None):
     hashed_url = re.sub(':','',hashed_url)
 
     response = requests.get(url, stream=True)
-    # print(url, response)
+    # print(response.status_code == 200)
     with open('data/google_images/'+hashed_url+'.jpg', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     # del response
@@ -72,5 +72,5 @@ def load_image(url, transform=None):
     
     # image = transforms.ToTensor()(image).unsqueeze(0)
     # print(image.shape)
-    return image
+    return image  # Tensor: (1, 3, 224, 224)
     
