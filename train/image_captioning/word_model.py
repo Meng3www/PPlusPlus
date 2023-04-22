@@ -49,7 +49,8 @@ class DecoderRNN(nn.Module):
         # self.cat_embedding = nn.Embedding(n_cat, cat_embedding_size)  # (18, 32)
         self.embed = nn.Embedding(vocab_size, embed_size)
         # output, (h_n, c_n), input_size = cat_embedding_size+char_embedding_size (32+32=64)
-        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
+
+        self.lstm = nn.LSTM(embed_size*2, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         self.init_weights()
     
@@ -59,29 +60,28 @@ class DecoderRNN(nn.Module):
         self.linear.weight.data.uniform_(-0.1, 0.1)
         self.linear.bias.data.fill_(0)
         
-    def forward(self, features, captions, hidden):
+    def forward(self, features, captions):
         """
         Decode image feature vectors and generates captions.
         features: vector
         captions: tensor
         lengths: hidden?
         """
-        captions = torch.tensor(captions, dtype=torch.int64)
+        captions = captions.clone().detach().long()  # Tensor: (12,)
         embeddings = self.embed(captions)  # Tensor: (12, 256)
-        # print(features.shape)  # torch.Size([1, 256])
-        # print(features.unsqueeze(1).shape)  # torch.Size([1, 1, 256])
-        # print(embeddings.shape)  # torch.Size([12, 256])
-        embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
-        # embeddings – padded batch of variable length sequences.
-        # lengths – list of sequence lengths of each batch element (must be on the CPU if provided as a tensor)
+        # print(features.shape)  #
+        # print(features.unsqueeze(1).shape)  #
+        # print(embeddings.shape)  #
+        embeddings = torch.cat((features.repeat(12, 1), embeddings), 1)  # (12, 512)
         # packed = pack_padded_sequence(embeddings, lengths, batch_first=True)
         # Defaults to zeros if (h_0, c_0) is not provided.
-        output, (hidden, cell) = self.lstm(embeddings, hidden)
+        # (12, 512)
+        output, _ = self.lstm(embeddings)
         # get LSTM outputs
         # lstm_output, (h, c) = self.lstm(x, hidden)
 
-        predictions = self.linear(output)
-        return torch.nn.functional.log_softmax(predictions, dim=1), hidden
+        predictions = self.linear(output)  # (12, 4987)
+        return torch.nn.functional.log_softmax(predictions, dim=1)
 
         ##################### 06c-char-level-LSTM.py
         # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
@@ -198,18 +198,24 @@ def getTrainingPair():
 
 def train(features, captions):
     # get a fresh hidden layer
-    hidden = lstm.init_hidden()
+    # hidden = lstm.init_hidden()
     # zero the gradients
     optimizer.zero_grad()
     loss = 0
     # run sequence
-    for i in range(captions.size(0)-1):
-        caption = torch.tensor([[captions[i]]])
-        # def forward(self, features, captions)
-        output, hidden = lstm(features, caption, hidden)
-        # compute loss (NLLH)
-        l = criterion(output, captions[i+1])
-        loss += l
+    # for i in range(captions.size(0)-1):
+    #     caption = torch.tensor([captions[i]])
+    #     # def forward(self, features, captions)
+    #     output, hidden = lstm(features, caption, hidden)
+    #     # compute loss (NLLH)
+    #     l = criterion(output, captions[i+1])
+    #     loss += l
+    predictions = lstm(features, captions)  # predictions {tensor: (name_length, 60)}
+    # compute loss (NLLH) loss {tensorL ()} tensor(45.3363, grad_fn=<NllLossBackward0>)
+    print(predictions)
+    print(predictions.shape)
+    loss = criterion(predictions[:-1], captions[1:len(captions)])
+    print(loss)
     # perform backward pass
     loss.backward()
     # perform optimization

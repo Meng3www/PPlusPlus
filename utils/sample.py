@@ -41,7 +41,7 @@ def load_image(url, transform=None):
     hashed_url = re.sub(':','',hashed_url)
 
     response = requests.get(url, stream=True)
-    # print(url, response)
+    # print(response.status_code == 200)
     with open('data/google_images/'+hashed_url+'.jpg', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     # del response
@@ -72,5 +72,5 @@ def load_image(url, transform=None):
     
     # image = transforms.ToTensor()(image).unsqueeze(0)
     # print(image.shape)
-    return image
+    return image  # Tensor: (1, 3, 224, 224)
     
