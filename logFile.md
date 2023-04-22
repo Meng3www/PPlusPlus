@@ -4,7 +4,7 @@ test train() lr=0.001:
 > print_every = 5     
 > learning_rate = 0.001     
 
-result: 2h21m54s      
+result: 2h21m54s (robot verification pops up around 100m later)      
 |epochs		|loss			|time|     
 | ------------- | --------------------- | --------------- |
 |5	 	|3526568.322480902 	|857.7873964309692|     
