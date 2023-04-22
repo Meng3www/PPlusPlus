@@ -67,7 +67,7 @@ class DecoderRNN(nn.Module):
         captions: tensor
         lengths: hidden?
         """
-        captions = captions.clone().detach().long()  # Tensor: (12,)
+        #captions = captions.clone().detach().long()  # Tensor: (12,)
         embeddings = self.embed(captions)  # Tensor: (12, 256)
         # print(features.shape)  #
         # print(features.unsqueeze(1).shape)  #
@@ -166,7 +166,10 @@ def getTrainingPair():
                 # resize
                 im1 = im1.resize([224, 224], Image.Resampling.LANCZOS)
                 # transform (1, 3, 224, 224)
-                im1 = transform(im1).unsqueeze(0)
+                im1 = transform(im1).unsqueeze(0)  # tensor (1, 3, 224, 224)
+                # boo = im1.size(dim=1) #== 3
+                if im1.size(dim=1) != 3:
+                    continue
                 # feed into cnn
                 # self.encoder(to_var(load_image(url, self.transform)))
                 # to_var() from utils/sample.py
@@ -192,7 +195,7 @@ def getTrainingPair():
                 while len_token < 10:
                     captions.append(vocab.word2idx["<pad>"])
                     len_token += 1
-                # captions = torch.tensor(captions)
+                captions = torch.tensor(captions)
                 yield features, captions
 
 
@@ -201,7 +204,6 @@ def train(features, captions):
     # hidden = lstm.init_hidden()
     # zero the gradients
     optimizer.zero_grad()
-    loss = 0
     # run sequence
     # for i in range(captions.size(0)-1):
     #     caption = torch.tensor([captions[i]])
@@ -210,12 +212,13 @@ def train(features, captions):
     #     # compute loss (NLLH)
     #     l = criterion(output, captions[i+1])
     #     loss += l
+    # feature: tensor (1, 256); caption: tensor(12,)
     predictions = lstm(features, captions)  # predictions {tensor: (name_length, 60)}
     # compute loss (NLLH) loss {tensorL ()} tensor(45.3363, grad_fn=<NllLossBackward0>)
-    print(predictions)
-    print(predictions.shape)
+    # print(predictions)
+    # print(predictions.shape)
     loss = criterion(predictions[:-1], captions[1:len(captions)])
-    print(loss)
+    # print(loss)
     # perform backward pass
     loss.backward()
     # perform optimization
@@ -236,20 +239,18 @@ if __name__ == '__main__':
 
     ###############################
 
-    # # last_time = begin = time.time()
-    # count = 0
-    # for i in getTrainingPair():
-    #     feat, cap = i
-    #     count += 1
-    #     # if count % 10 == 0:
-    #       #  print(count)
-    #        # print(time.time() - last_time)
-    #     print(feat.shape)
-    #     print(cap)
-    #         #last_time = time.time()
-    #     if count > 0:
-    #         break
-    # # print('{0:30} {1}'.format('finished in', time.time() - begin))
+    # last_time = begin = time.time()
+    count = 0
+    for i in getTrainingPair():
+        feat, cap = i
+        count += 1
+        # feature: tensor (1, 256); caption: tensor(12,)
+        print(feat.shape)
+        print(cap.shape)
+            #last_time = time.time()
+        if count > 0:
+            break
+    # print('{0:30} {1}'.format('finished in', time.time() - begin))
 
     ###################################
     # model training
@@ -268,9 +269,9 @@ if __name__ == '__main__':
     total_loss = 0  # will be reset every 'plot_every' iterations
 
     # start = time.time()
-    cap = [0 for i in range(12)]
-    cap = torch.as_tensor(cap)
-    feat = torch.zeros(1, 256)
+    # cap = [i for i in range(12)]
+    # cap = torch.as_tensor(cap)
+    # feat = torch.zeros(1, 256)
     for i in range(1, 2):  # n_iters + 1):
         loss = train(feat, cap)
         total_loss += loss
