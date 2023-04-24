@@ -28,7 +28,7 @@ urls = [
 # rat = 100, beam s1 produces non words
 # rat = 5, coco + beam s1 produces sentences ending with '$'
 # rat = 5, coco + beam s1 say things do not appear on the picture still, but '$'s are reduced
-rat = [1.0]
+rat = [5.0]
 # the neural model: captions trained on MSCOCO ("coco") are more verbose than VisualGenome ("vg")
 model = ["vg"]
 number_of_images = len(urls)
@@ -42,7 +42,7 @@ initial_world_prior = make_initial_prior(initial_image_prior,initial_rationality
 speaker_model = RSA(seg_type="char",tf=False)
 speaker_model.initialize_speakers(model)
 # set the possible images and rationalities
-speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)  # list: 2, 2 tensors of shape (1, 256)
+#speaker_model.speaker_prior.set_features(images=urls,tf=False,rationalities=rat)  # list: 2, 2 tensors of shape (1, 256)
 speaker_model.initial_speakers[0].set_features(images=urls,tf=False,rationalities=rat)  # list: 2, 2 tensors of shape (1, 256)
 # generate a sentence by unfolding stepwise, from the speaker: greedy unrolling used here, not beam search: much better to use beam search generally
 # literal_caption = ana_greedy(

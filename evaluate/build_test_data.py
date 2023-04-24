@@ -153,9 +153,10 @@ def build_img_path(dir_path):
             count += 1
             # make a new cluster if there are 10 images in the current cluster
             if count == 10:
-                cluster_idx += 1
-                img[dir][cluster_idx] = []
-                count = 0
+                if cluster_idx < 9:
+                    cluster_idx += 1
+                    img[dir][cluster_idx] = []
+                    count = 0
             
     return img
 
@@ -163,12 +164,12 @@ def build_img_path(dir_path):
 
 if __name__ == "__main__":
     # build test dataset 1
-    #for object in ["man", "person", "woman", "building", "sign", "table", "bus", "window", "sky", "tree"]:
-    #    pickle.dump(get_entries_containing_object(object), open('vg_data/ts1/'+object,'wb'))
+    for object in ["man", "person", "woman", "building", "sign", "table", "bus", "window", "sky", "tree"]:
+        pickle.dump(get_entries_containing_object(object), open('vg_data/ts1/'+object,'wb'))
 
     # inspect the pickle file
-    #id_to_caption = pickle.load(open("vg_data/ts1/woman",'rb'))
-    #print(list(id_to_caption.items())[:10])
+    id_to_caption = pickle.load(open("vg_data/ts1/woman",'rb'))
+    print(list(id_to_caption.items())[:10])
     
     # crop out and save the corresponding image regions for testing use
     for filename in os.listdir("vg_data/ts1"):

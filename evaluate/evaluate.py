@@ -2,6 +2,7 @@
 
 from build_test_data import build_img_path
 from PIL import Image as PIL_Image
+from generate_captions import generate_captions
 
 
 # TODO: define a listener L_eval(image|caption)
@@ -24,8 +25,11 @@ from PIL import Image as PIL_Image
 
 
 if __name__ == "__main__":
-    img_path = build_img_path("vg_data/ts1_img/")
-    print(img_path)
-    img = PIL_Image.open(img_path['sign'][0][1])
-    img.show()
-    img.close()
+    #img_path = build_img_path("vg_data/ts1_img/")
+    #print(img_path)
+    #img = PIL_Image.open(img_path['sign'][0][1])
+    #img.show()
+    #img.close()
+    paths = ['vg_data/ts1_img/man/569_4957241', 'vg_data/ts1_img/man/910_4974287', 'vg_data/ts1_img/man/770_5525114', 'vg_data/ts1_img/man/51_4931359', 'vg_data/ts1_img/man/420_4949802', 'vg_data/ts1_img/man/1080_4982799', 'vg_data/ts1_img/man/305_4944073', 'vg_data/ts1_img/man/911_4974350', 'vg_data/ts1_img/man/598_5523166', 'vg_data/ts1_img/man/953_5527977']
+    generate_captions(paths, greedy=False)
+    
