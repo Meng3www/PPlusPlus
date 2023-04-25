@@ -30,6 +30,7 @@
 |24 	 |195167.58255624826 |176.0397870540619|
 |25 	 |191166.9267608953  |173.7200322151184|
 
+*saving and then loading the model to continue training cause the loss to increase
 
 ### test on the 1st epoch loss with different lr
 |lr      |loss  |
