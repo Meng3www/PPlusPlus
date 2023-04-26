@@ -1,3 +1,25 @@
+### 26.04.2023
+test run on urobe (cpu)
+|epochs|loss               |time     |
+| ---- | ----------------- | ------- |
+|1     |739414.5242900848  |885.8389172554016(14.76mins)|
+
+model saved and loaded to continue training
+|epochs|loss               |time     |
+| ---- | ----------------- | ------- |
+|1     |620580.0077550262  |873.3544211387634|
+|1     |619390.9568524957  |888.3745331764221|
+
+screen `vg_word`, 200 epoch, eta 50hours      
+>(pre-trained) model loaded, resume training
+
+|epochs  |loss                   |totol time (min)|
+| ------ | --------------------- | -------------- |
+|1       |737575.5551174283      |14.498900675773621|
+
+
+
+------------------------------
 ### 23.04.2023
 ### training each round with 25 epochs
 `lr=0.0005`, `dataloader`: `shuffle=True`
