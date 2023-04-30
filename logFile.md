@@ -13,11 +13,11 @@ model saved and loaded to continue training
 screen `vg_word`, 200 epoch, eta -, lr=0.0005      
 >(pre-trained) model loaded, resume training every 40 epoch
 
-|epochs|loss    |time/m|epochs|loss    |time/m|
-| ---- | ------ | ---- | ---- | ------ | ---- |
-|1     |738076  |14    |41    |171230  |22    |
-|2     |609680  |30    |42    |167607  |46    |
-|3     |555475  |45    |43    |167964  |69    |
+|epochs|loss    |time/m|epochs|loss    |time/m|loss    |time/m|
+| ---- | ------ | ---- | ---- | ------ | ---- | ------ | ---- |
+|1     |738076  |14    |41    |171230  |22    |126414  |22    |
+|2     |609680  |30    |42    |167607  |46    |101722  |44    |
+|3     |555475  |45    |43    |167964  |69    |92436   |67    |
 |4     |512368  |62    |44    |167989  |93    |
 |5     |469827  |82    |45    |166317  |120   |
 |6     |434377  |104   |46    |166167  |148   |
@@ -56,9 +56,9 @@ screen `vg_word`, 200 epoch, eta -, lr=0.0005
 |39    |169255  |825   |79    |160457  |1008  |
 |40    |167633  |847   |80    |159899  |1034  |
 
-vg_word_decoder_40.pkl
-vg_word_decoder_40_5.pkl
-    
+col1-3: vg_word_decoder_40.pkl
+col4-6: vg_word_decoder_40_5.pkl
+col7-8: vg_word_decoder_40_3.pkl    
 
 
 
