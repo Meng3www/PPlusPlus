@@ -78,6 +78,7 @@ def build_vocab_coco(json_file, threshold):
         vocab.add_word(word)
     return vocab
 
+
 def main(args):
     vocab = build_vocab(json=args.caption_path,
                         threshold=args.threshold)

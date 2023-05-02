@@ -54,90 +54,23 @@ class DecoderRNN(nn.Module):
 
     def sample(self, features, states=None):
         """Samples captions for given image features (Greedy search)."""
-        # # Sheet 8.1
-        # output = []
-        # raw_outputs = [] # for structural loss computation
-        # log_probs = []
-        # entropies = []
-        # batch_size = features.shape[0]
-        # softmax = nn.Softmax(dim=-1)
-        # init_hiddens = self.init_hidden(batch_size)
-        #
-        # # if torch.backends.mps.is_available():
-        # #     device = torch.device("mps")
-        # # elif torch.cuda.is_available():
-        # #     device = torch.device("cuda")
-        # # else:
-        # #     device = torch.device("cpu")
-        # device = torch.device('cpu')
-        # for i in range(max_sequence_length):
-        #     if i == 0:
-        #         cat_samples = torch.tensor([0]).repeat(batch_size, 1)
-        #         hidden_state = init_hiddens
-        #
-        #     cat_samples = cat_samples.to(device)
-        #     inputs = inputs.to(device)
-        #
-        #     out, hidden_state = self.forward(inputs, cat_samples, hidden_state)
-        #
-        #     # get and save probabilities and save raw outputs
-        #     raw_outputs.extend(out)
-        #     probs = softmax(out)
-        #
-        #     max_probs, cat_samples = torch.max(probs, dim=-1)
-        #     log_p = torch.log(max_probs)
-        #     entropy = -log_p * max_probs
-        #
-        #     top5_probs, top5_inds = torch.topk(probs, 5, dim=-1)
-        #
-        #     entropies.append(entropy)
-        #     output.append(cat_samples)
-        #     # cat_samples = torch.cat((cat_samples, cat_samples), dim=-1)
-        #     # print("Cat samples ", cat_samples)
-        #     log_probs.append(log_p)
-        #
-        # output = torch.stack(output, dim=-1).squeeze(1)
-        # # stack
-        # log_probs = torch.stack(log_probs, dim=1).squeeze(-1)
-        # entropies = torch.stack(entropies, dim=1).squeeze(-1)
-        #
-        # ####
-        # # get effective log prob and entropy values - the ones up to (including) END (word2idx = 1)
-        # # mask positions after END - both entropy and log P should be 0 at those positions
-        # end_mask = output.size(-1) - (torch.eq(output, 1).to(torch.int64).cumsum(dim=1) > 0).sum(dim=-1)
-        # # include the END token
-        # end_inds = end_mask.add_(1).clamp_(max=output.size(-1))  # shape: (batch_size,)
-        # for pos, i in enumerate(end_inds):
-        #     # zero out log Ps and entropies
-        #     log_probs[pos, i:] = 0
-        #     entropies[pos, i:] = 0
-        # ####
-        #
-        # raw_outputs = torch.stack(raw_outputs, dim=1).view(batch_size, -1, self.vocabulary_size)
-        # return output, log_probs, raw_outputs, entropies
-
-        ############################
         sampled_ids = []
+        softmax = nn.Softmax(dim=-1)
         # features: tensor (1, 256)
-        with open("vg_data/vocab_small.pkl", 'rb') as f:
-            vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
         for i in range(12):  # maximum sampling length
             if i == 0:
-                caption = [vocab.word2idx['<start>']]
+                caption = [1]  # vocab.word2idx['<start>']
                 caption = torch.tensor(caption)  # tensor (1,)
                 hidden = self.init_hidden()
             output, hidden = self.forward(features, caption, hidden)
             # hiddens, states = self.lstm(features, states)  # (batch_size, 1, hidden_size),
-            output = self.linear(output.squeeze(1))  # (batch_size, vocab_size)
-            predicted = output.max(1)[1]
-
-            # print("stuff",type(predicted.data),predicted.data)
-            # print(vocab.idx2word[1])
-            # print("\nNNASDFKLASDJF\n\n",vocab.idx2word[predicted.data.cpu().numpy()[0]])
-
-            sampled_ids.append(predicted)
-            inputs = self.embed(predicted)
-            inputs = inputs.unsqueeze(1)  # (batch_size, 1, embed_size)
+            # right: tensor (1, 4987) neg float
+            # output = self.linear(output.squeeze(1))  # (batch_size, vocab_size)
+            probs = softmax(output)  # tensor (1, 4987)
+            max_probs, caption = torch.max(probs, dim=-1)  # tensor([4])
+            log_p = torch.log(max_probs)  # tensor (1, 1)
+            # entropy = -log_p * max_probs  # tensor (1, 1)
+            sampled_ids.append(caption)
 
         # print("SAMPLED IDS",sampled_ids.size())
         sampled_ids = torch.cat(sampled_ids, 0)  # (batch_size, 20)
@@ -175,15 +108,27 @@ class ModelDataset(Dataset):
 
     def __getitem__(self, index):
         # return a pair of feature and captions, allowing indexing
-        return self.data[index][0], self.data[index][1]
+        return self.data[index][0], self.data[index][1]# , self.data[index][2], self.data[index][3]
 
     def __len__(self):
         return self.n_samples
 
 
+def print_cap(cap_idx):
+    caps = []
+    with open("vg_data/vocab_small.pkl", 'rb') as f:
+        vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
+    for idx in cap_idx:
+        if idx == 2:
+            break
+        else:
+            caps.append(vocab.idx2word[idx.item()])
+    return " ".join(caps)
+
+
 if __name__ == '__main__':
 
-    vg_dataset = ModelDataset("vg_data/vg_feat_cap_0.pkl")
+    vg_dataset = ModelDataset("vg_data/train_test_data/vg_train_40k.pkl")
     dataloader = DataLoader(dataset=vg_dataset, batch_size=1, num_workers=0, shuffle=False)
     lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size,
                       vocab_size=vocab_size, num_layers=num_layers).to(device)
@@ -217,13 +162,16 @@ if __name__ == '__main__':
     # torch.save(lstm.state_dict(), 'vg_word_decoder.pkl')
 
     ####################### sample
-    lstm.load_state_dict(torch.load('vg_data/vg_word_decoder_80_2.pkl'))  ###
+    lstm.load_state_dict(torch.load('vg_data/decoder/vg_word_decoder_105_04.pkl'))  ###
     # lstm.eval()  ###
     # lstm.train()  ###
     print('(pre-trained) model loaded')
-    for feature, captions in dataloader:
+    for i, (feature, captions) in enumerate(dataloader):
+    # for i, (feature, captions, phrase, url) in enumerate(dataloader):
         feature = feature.to(device)  # tensor (1, 1, 256)
         captions = captions.to(device)  # tensor (1, 12)
         output = lstm.sample(feature[0])
-        print(output)
+        print("predicted: ", print_cap(output))
+        # print("target: ", phrase, url)
+        if i > 5: break
 
