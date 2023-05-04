@@ -1,3 +1,18 @@
+### 04.05.2023
+test learning rate for coco_word_model
+|lr |
+| - |
+|e1 |
+| m |
+|m/e|
+|e2 |
+| m |
+|m/e|
+
+------------------------------
+
+
+
 ### 26.04.2023
 test run on urobe (cpu)
 |epochs|loss               |time     |
