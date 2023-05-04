@@ -2,13 +2,13 @@ import torch.nn as nn
 import torch
 import time
 from torch.utils.data import Dataset, DataLoader
+import pickle
 
 
 embed_size = 256
 hidden_size = 512
 num_layers = 1
 vocab_size = 4533
-# https://www.youtube.com/watch?v=y2BaTt1fxJU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -30,15 +30,15 @@ class DecoderRNN(nn.Module):
         self.linear.bias.data.fill_(0)
 
     # def forward(self, features, captions):
-    def forward(self, features, captions, hidden_prev):  ##
+    def forward(self, features, caption, hidden_prev):  ##
         """
         Decode image feature vectors and generates captions.
         """
         # print('captions: ', captions)  # device='cuda:0'
-        embeddings = self.embed(captions)  # Tensor: (12, 256)
+        embeddings = self.embed(caption)  # Tensor: (12, 256)
         # print('features.shape before cat: ', features.shape)  #
         # print('embeddings.shape before cat: ', embeddings.shape)  # torch.Size([12, 256])
-        embeddings = torch.cat((features.repeat(captions.shape[0], 1), embeddings), 1).to(device)  # (12, 512)
+        embeddings = torch.cat((features.repeat(caption.shape[0], 1), embeddings), 1).to(device)  # (12, 512)
         # print('embeddings.shape fed to lstm: ', embeddings.shape)  # torch.Size([12, 512])
         # output, (hidden, cell) = self.lstm(torch.concat([cat_emb, char_emb], dim=1))
         # Defaults to zeros if (h_0, c_0) is not provided.
@@ -112,15 +112,33 @@ class TrainData(Dataset):
         return self.n_samples
 
 
-if __name__ == '__main__':
+def print_cap(cap_idx):
+    caps = []
+    with open("vg_data/vocab_small.pkl", 'rb') as f:
+        vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
+    for idx in cap_idx:
+        if idx == 2:
+            break
+        else:
+            caps.append(vocab.idx2word[idx.item()])
+    return " ".join(caps)
 
-    vg_dataset = TrainData("vg_feat_cap_0.pkl")
-    dataloader = DataLoader(dataset=vg_dataset, batch_size=1, num_workers=0, shuffle=True)
+
+if __name__ == '__main__':
+    shuffle = False
+    dataset_0 = TrainData("coco_data/coco_train_0-10k.pkl")
+    dataloader_0 = DataLoader(dataset=dataset_0, batch_size=1, num_workers=0, shuffle=shuffle)
+    dataset_1 = TrainData("coco_data/coco_train_20-30k.pkl")
+    dataloader_1 = DataLoader(dataset=dataset_1, batch_size=1, num_workers=0, shuffle=shuffle)
+    dataset_2 = TrainData("coco_data/coco_train_31-39k.pkl")
+    dataloader_2 = DataLoader(dataset=dataset_2, batch_size=1, num_workers=0, shuffle=shuffle)
+    dataset_3 = TrainData("coco_data/coco_train_40-53k.pkl")
+    dataloader_3 = DataLoader(dataset=dataset_3, batch_size=1, num_workers=0, shuffle=shuffle)
 
     # train without loading pre-trained model
     lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size,
                       vocab_size=vocab_size, num_layers=num_layers).to(device)
-    # lstm.load_state_dict(torch.load('vg_word_decoder_100_07.pkl'))  ###
+    # lstm.load_state_dict(torch.load('07.pkl'))  ###
     # lstm.eval()  ###
     # lstm.train()  ###
     print('(pre-trained) model loaded, resume training')
@@ -131,24 +149,44 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
     # training parameters
     n_epoch = 2
-    all_losses = []
     total_loss = 0
     save_every = 20  # save once 20 epochs are finished
-
+    print("test learning rate: ", str(learning_rate))  ######
     start = time.time()
     print("epochs\tloss\t\t\ttotol time (min)")
     for epoch in range(1, n_epoch+1):
-        for feature, captions in dataloader:
+        for feature, captions in dataloader_0:
             # feature = feature.to(device)  # .to(device) redundant
             captions = captions.to(device)
-            loss = train(feature[0], captions[0])
-            total_loss += loss
+            loss_s = train(feature[0], captions[0])
+            total_loss += loss_s
+            break  #############
 
-        print(epoch, "\t", total_loss, "\t", (time.time() - start)/60)
-        # start = time.time()
+        for feature, captions in dataloader_1:
+            # feature = feature.to(device)  # .to(device) redundant
+            captions = captions.to(device)
+            loss_s = train(feature[0], captions[0])
+            total_loss += loss_s
+            break  #############
+
+        for feature, captions in dataloader_2:
+            # feature = feature.to(device)  # .to(device) redundant
+            captions = captions.to(device)
+            loss_s = train(feature[0], captions[0])
+            total_loss += loss_s
+            break  #############
+
+        for feature, captions in dataloader_3:
+            # feature = feature.to(device)  # .to(device) redundant
+            captions = captions.to(device)
+            loss_s = train(feature[0], captions[0])
+            total_loss += loss_s
+            break  #############
+
+        print(epoch, "\t", round(total_loss, 2), "\t", round((time.time() - start)/60, 2))
         total_loss = 0
 
-        if epoch % save_every == 0: # checkout at each n epochs
+        if epoch % save_every == 0:  # checkout at each n epochs
             out_file_name = 'coco_word_decoder_' + str(epoch) + '_.pkl'
             torch.save(lstm.state_dict(), out_file_name)
             print('checkpoint saved as ', out_file_name)
