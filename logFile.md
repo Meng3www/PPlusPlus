@@ -52,7 +52,7 @@ test learning rate for coco_word_model
 |40   |464299 |665.93|
 
 coco_word_decoder_10_.pkl, coco_word_decoder_20_.pkl, coco_word_decoder_30_.pkl, coco_word_decoder_40_.pkl     
-coco_word_decoder_40_3.pkl
+coco_word_decoder_40_3.pkl, coco_word_decoder_50_3.pkl, 
 
 
 ------------------------------
