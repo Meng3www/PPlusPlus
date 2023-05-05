@@ -47,10 +47,12 @@ test learning rate for coco_word_model
 |35   |470242 |581.75|
 |36   |469073 |599.3 |
 |37   |467885 |614.59| 
+|38   |467379 |631.24|
+|39   |466734 |648.53|
+|40   |464299 |665.93|
 
-checkpoint saved as  coco_word_decoder_10_.pkl
-checkpoint saved as  coco_word_decoder_20_.pkl
-checkpoint saved as  coco_word_decoder_30_.pkl
+coco_word_decoder_10_.pkl, coco_word_decoder_20_.pkl, coco_word_decoder_30_.pkl, coco_word_decoder_40_.pkl
+
 
 ------------------------------
 
