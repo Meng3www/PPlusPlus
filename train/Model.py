@@ -63,30 +63,28 @@ class Model:
 		# world <World image:0 rationality:0 speaker:0>
 		# world.target: 0, inputs: tensor(1, 1, 256)
 		inputs = self.features[world.target].unsqueeze(1)
-
-
 		states=None
 
 		for seg in state.context_sentence:									  # maximum sampling length
-			hiddens, states = self.decoder.lstm(inputs, states)		  # (batch_size, 1, hidden_size), 
-
+			# imput: tensor (1, 1, 256), states (tensor (1, 1, 512), tensor (1, 1, 512))
+			hiddens, states = self.decoder.lstm(inputs, states)		  # (batch_size, 1, 512),
+			# tensor (1, 30)
 			outputs = self.decoder.linear(hiddens.squeeze(1)) 
-
+			# tensor (1, ) index
 			predicted = outputs.max(1)[1]   
 
 			predicted[0] = self.seg2idx[seg]
+			# tensor (1, 256)
 			inputs = self.decoder.embed(predicted)
+			# tensor (1, 1, 256)
 			inputs = inputs.unsqueeze(1)		# (batch_size, vocab_size)
 		# inputs: tensor(1, 1, 256)
 		# hidden: tensor (1, 1, 512), states: (tensor (1, 1, 512), tensor (1, 1, 512))
-		hiddens, states = self.decoder.lstm(inputs, states)		  # (batch_size, 1, hidden_size), 
-		outputs = self.decoder.linear(hiddens.squeeze(1))   # tensor (1, 30)
-		output_array = outputs.squeeze(0).data.cpu().numpy()  # ndarray (30,)
+		hiddens, states = self.decoder.lstm(inputs, states)		  # (batch_size, 1, 512),
+		outputs = self.decoder.linear(hiddens.squeeze(1))   # tensor (1, 30) float
+		output_array = outputs.squeeze(0).data.cpu().numpy()  # ndarray (30,) float
 
-		log_softmax_array = np.log(softmax(output_array))  # ndarray (30,)
-
-
-
+		log_softmax_array = np.log(softmax(output_array))  # ndarray (30,) float
 		return log_softmax_array
 
 	def set_features(self,images,rationalities,tf):

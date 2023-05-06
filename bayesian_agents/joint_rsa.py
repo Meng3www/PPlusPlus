@@ -174,7 +174,7 @@ class RSA:
 		# print(world_prior.shape)
 
 		# I could write: itertools product axes
-		scores = np.zeros((world_prior.shape))
+		scores = np.zeros((world_prior.shape))  # ndarray (2, 1, 1)
 		for n_tuple in itertools.product(*[list(range(x)) for x in world_prior.shape]):
 			# print(n_tuple)
 			# print(world_prior.shape)
@@ -185,14 +185,15 @@ class RSA:
 			# world.set_values(n_tuple)
 
 			# world.rationality=rationality_prior[i]
-			# NOTE THAT NOT DEPTH-1 HERE
+			# NOTE THAT NOT DEPTH-1 HERE # ndarray (30,) float
 			out = self.speaker(state=state,world=world,depth=depth)
 			# out = np.squeeze(out)
 
-			# print(out,depth)
+			# print(out,depth)  # utterance: int # n_tuple: (0, 0, 0), (1, 0, 0)
 			scores[n_tuple]=out[utterance]
 
 		scores = scores*state.listener_rationality
+		# ndarray (2, 1, 1) float
 		world_posterior = (scores + world_prior) - scipy.special.logsumexp(scores + world_prior)
 		# print("world posterior listener complex shape",world_posterior.shape)
 		return world_posterior

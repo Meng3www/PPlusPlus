@@ -55,6 +55,7 @@ class DecoderRNN(nn.Module):
     def sample(self, features, states=None):
         """Samples captions for given image features (Greedy search)."""
         sampled_ids = []
+        log_p = 0
         softmax = nn.Softmax(dim=-1)
         # features: tensor (1, 256)
         for i in range(12):  # maximum sampling length
@@ -68,13 +69,13 @@ class DecoderRNN(nn.Module):
             # output = self.linear(output.squeeze(1))  # (batch_size, vocab_size)
             probs = softmax(output)  # tensor (1, 4987)
             max_probs, caption = torch.max(probs, dim=-1)  # tensor([4])
-            log_p = torch.log(max_probs)  # tensor (1, 1)
+            log_p += torch.log(max_probs).item()  # tensor (1,) -> float
             # entropy = -log_p * max_probs  # tensor (1, 1)
             sampled_ids.append(caption)
 
         # print("SAMPLED IDS",sampled_ids.size())
         sampled_ids = torch.cat(sampled_ids, 0)  # (batch_size, 20)
-        return sampled_ids.squeeze()
+        return sampled_ids.squeeze(), log_p
 
     def init_hidden(self):
         # (tensor(1, 512), tensor(1, 512))
@@ -108,7 +109,7 @@ class ModelDataset(Dataset):
 
     def __getitem__(self, index):
         # return a pair of feature and captions, allowing indexing
-        return self.data[index][0], self.data[index][1]# , self.data[index][2], self.data[index][3]
+        return self.data[index][0], self.data[index][1] , self.data[index][2], self.data[index][3]
 
     def __len__(self):
         return self.n_samples
@@ -128,7 +129,7 @@ def print_cap(cap_idx):
 
 if __name__ == '__main__':
 
-    vg_dataset = ModelDataset("vg_data/train_test_data/vg_train_40k.pkl")
+    vg_dataset = ModelDataset("vg_data/train_test_data/vg_test_0.pkl")
     dataloader = DataLoader(dataset=vg_dataset, batch_size=1, num_workers=0, shuffle=False)
     lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size,
                       vocab_size=vocab_size, num_layers=num_layers).to(device)
@@ -166,12 +167,12 @@ if __name__ == '__main__':
     # lstm.eval()  ###
     # lstm.train()  ###
     print('(pre-trained) model loaded')
-    for i, (feature, captions) in enumerate(dataloader):
-    # for i, (feature, captions, phrase, url) in enumerate(dataloader):
+    # for i, (feature, captions) in enumerate(dataloader):  # train_data
+    for i, (feature, captions, phrase, url) in enumerate(dataloader):  # test_data
         feature = feature.to(device)  # tensor (1, 1, 256)
         captions = captions.to(device)  # tensor (1, 12)
-        output = lstm.sample(feature[0])
-        print("predicted: ", print_cap(output))
-        # print("target: ", phrase, url)
+        output, log_p = lstm.sample(feature[0])
+        print("predicted: ", print_cap(output), "\t", str(log_p))
+        print("target: ", phrase, url)
         if i > 5: break
 
