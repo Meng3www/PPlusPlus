@@ -3,6 +3,7 @@ import torch
 import time
 from torch.utils.data import Dataset, DataLoader
 import pickle
+from utils.build_vocab import Vocabulary
 
 
 embed_size = 256
@@ -53,6 +54,7 @@ class DecoderRNN(nn.Module):
     def sample(self, features, states=None):
         """Samples captions for given image features (Greedy search)."""
         sampled_ids = []
+        log_p = 0
         softmax = nn.Softmax(dim=-1)
         # features: tensor (1, 256)
         for i in range(12):  # maximum sampling length
@@ -66,13 +68,13 @@ class DecoderRNN(nn.Module):
             # output = self.linear(output.squeeze(1))  # (batch_size, vocab_size)
             probs = softmax(output)  # tensor (1, 4987)
             max_probs, caption = torch.max(probs, dim=-1)  # tensor([4])
-            log_p = torch.log(max_probs)  # tensor (1, 1)
+            log_p += torch.log(max_probs).item()  # tensor (1,) -> float
             # entropy = -log_p * max_probs  # tensor (1, 1)
             sampled_ids.append(caption)
 
         # print("SAMPLED IDS",sampled_ids.size())
         sampled_ids = torch.cat(sampled_ids, 0)  # (batch_size, 20)
-        return sampled_ids.squeeze()
+        return sampled_ids.squeeze(), log_p
 
     def init_hidden(self):
         # (tensor(1, 512), tensor(1, 512))
@@ -106,15 +108,15 @@ class TrainData(Dataset):
 
     def __getitem__(self, index):
         # return a pair of feature and captions, allowing indexing
-        return self.data[index][0], self.data[index][1]# , self.data[index][2], self.data[index][3]
+        return self.data[index][0], self.data[index][1], self.data[index][2], self.data[index][3]
 
     def __len__(self):
         return self.n_samples
 
 
-def print_cap(cap_idx):
+def print_cap(cap_idx):  # tensor (12,)
     caps = []
-    with open("vg_data/vocab_small.pkl", 'rb') as f:
+    with open("coco_data/vocab_coco_4533.pkl", 'rb') as f:
         vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
     for idx in cap_idx:
         if idx == 2:
@@ -125,69 +127,83 @@ def print_cap(cap_idx):
 
 
 if __name__ == '__main__':
-    shuffle = False
-    dataset_0 = TrainData("coco_data/coco_train_0-10k.pkl")
-    dataloader_0 = DataLoader(dataset=dataset_0, batch_size=1, num_workers=0, shuffle=shuffle)
-    dataset_1 = TrainData("coco_data/coco_train_20-30k.pkl")
+    shuffle = True
+    # dataset_0 = TrainData("coco_data/coco_train_0-10k.pkl")
+    # dataloader_0 = DataLoader(dataset=dataset_0, batch_size=1, num_workers=0, shuffle=shuffle)
+    dataset_1 = TrainData("coco_data/coco_test_400.pkl")
     dataloader_1 = DataLoader(dataset=dataset_1, batch_size=1, num_workers=0, shuffle=shuffle)
-    dataset_2 = TrainData("coco_data/coco_train_31-39k.pkl")
-    dataloader_2 = DataLoader(dataset=dataset_2, batch_size=1, num_workers=0, shuffle=shuffle)
-    dataset_3 = TrainData("coco_data/coco_train_40-53k.pkl")
-    dataloader_3 = DataLoader(dataset=dataset_3, batch_size=1, num_workers=0, shuffle=shuffle)
+    # dataset_2 = TrainData("coco_data/coco_train_31-39k.pkl")
+    # dataloader_2 = DataLoader(dataset=dataset_2, batch_size=1, num_workers=0, shuffle=shuffle)
+    # dataset_3 = TrainData("coco_data/coco_train_40-53k.pkl")
+    # dataloader_3 = DataLoader(dataset=dataset_3, batch_size=1, num_workers=0, shuffle=shuffle)
 
     # train without loading pre-trained model
     lstm = DecoderRNN(embed_size=embed_size, hidden_size=hidden_size,
                       vocab_size=vocab_size, num_layers=num_layers).to(device)
-    # lstm.load_state_dict(torch.load('07.pkl'))  ###
+    # load pre_trained model
+    lstm.load_state_dict(torch.load('coco_data/coco_word_decoder_110_1e-06.pkl'))  ###
     # lstm.eval()  ###
     # lstm.train()  ###
-    print('(pre-trained) model loaded, resume training')
-    criterion = nn.NLLLoss(reduction='sum')
-    # learning rate
-    learning_rate = 0.01
-    # optimizer
-    optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
-    # training parameters
-    n_epoch = 2
-    total_loss = 0
-    save_every = 20  # save once 20 epochs are finished
-    print("test learning rate: ", str(learning_rate))  ######
-    start = time.time()
-    print("epochs\tloss\t\t\ttotol time (min)")
-    for epoch in range(1, n_epoch+1):
-        for feature, captions in dataloader_0:
-            # feature = feature.to(device)  # .to(device) redundant
-            captions = captions.to(device)
-            loss_s = train(feature[0], captions[0])
-            total_loss += loss_s
-            break  #############
 
-        for feature, captions in dataloader_1:
-            # feature = feature.to(device)  # .to(device) redundant
-            captions = captions.to(device)
-            loss_s = train(feature[0], captions[0])
-            total_loss += loss_s
-            break  #############
+    # # training
+    # print('(pre-trained) model loaded, resume training')
+    # criterion = nn.NLLLoss(reduction='sum')
+    # # learning rate
+    # learning_rate = 0.01
+    # # optimizer
+    # optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
+    # # training parameters
+    # n_epoch = 2
+    # total_loss = 0
+    # save_every = 20  # save once 20 epochs are finished
+    # print("test learning rate: ", str(learning_rate))  ######
+    # start = time.time()
+    # print("epochs\tloss\t\t\ttotol time (min)")
+    # for epoch in range(1, n_epoch+1):
+    #     for feature, captions in dataloader_0:
+    #         # feature = feature.to(device)  # .to(device) redundant
+    #         captions = captions.to(device)
+    #         loss_s = train(feature[0], captions[0])
+    #         total_loss += loss_s
+    #         break  #############
+    #
+    #     for feature, captions in dataloader_1:
+    #         # feature = feature.to(device)  # .to(device) redundant
+    #         captions = captions.to(device)
+    #         loss_s = train(feature[0], captions[0])
+    #         total_loss += loss_s
+    #         break  #############
+    #
+    #     for feature, captions in dataloader_2:
+    #         # feature = feature.to(device)  # .to(device) redundant
+    #         captions = captions.to(device)
+    #         loss_s = train(feature[0], captions[0])
+    #         total_loss += loss_s
+    #         break  #############
+    #
+    #     for feature, captions in dataloader_3:
+    #         # feature = feature.to(device)  # .to(device) redundant
+    #         captions = captions.to(device)
+    #         loss_s = train(feature[0], captions[0])
+    #         total_loss += loss_s
+    #         break  #############
+    #
+    #     print(epoch, "\t", round(total_loss, 2), "\t", round((time.time() - start)/60, 2))
+    #     total_loss = 0
+    #
+    #     if epoch % save_every == 0:  # checkout at each n epochs
+    #         out_file_name = 'coco_word_decoder_' + str(epoch) + '_.pkl'
+    #         torch.save(lstm.state_dict(), out_file_name)
+    #         print('checkpoint saved as ', out_file_name)
+    ############### end training
 
-        for feature, captions in dataloader_2:
-            # feature = feature.to(device)  # .to(device) redundant
-            captions = captions.to(device)
-            loss_s = train(feature[0], captions[0])
-            total_loss += loss_s
-            break  #############
-
-        for feature, captions in dataloader_3:
-            # feature = feature.to(device)  # .to(device) redundant
-            captions = captions.to(device)
-            loss_s = train(feature[0], captions[0])
-            total_loss += loss_s
-            break  #############
-
-        print(epoch, "\t", round(total_loss, 2), "\t", round((time.time() - start)/60, 2))
-        total_loss = 0
-
-        if epoch % save_every == 0:  # checkout at each n epochs
-            out_file_name = 'coco_word_decoder_' + str(epoch) + '_.pkl'
-            torch.save(lstm.state_dict(), out_file_name)
-            print('checkpoint saved as ', out_file_name)
-
+    # sampling
+    # for i, (feature, captions) in enumerate(dataloader_1):  # train_data
+    for i, (feature, captions, phrase, url) in enumerate(dataloader_1):  # test_data
+        feature = feature.to(device)  # tensor (1, 1, 256)
+        captions = captions.to(device)  # tensor (1, 12)
+        output, log_p = lstm.sample(feature[0])
+        print("predicted: ", print_cap(output), "\t", str(log_p))
+        # print("target from training data: ", print_cap(captions[0]))
+        print("target: ", phrase, url)
+        if i > 5: break
