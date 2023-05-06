@@ -53,7 +53,7 @@ test learning rate for coco_word_model
 
 coco_word_decoder_30_.pkl     
 coco_word_decoder_40_3.pkl, coco_word_decoder_50_2.pkl, coco_word_decoder_55_1.pkl, coco_word_decoder_60_7e-05.pkl
-coco_word_decoder_65_5e-05.pkl, coco_word_decoder_70_3e-05.pkl, coco_word_decoder_75_2e-05.pkl, coco_word_decoder_80_1e-05.pkl
+coco_word_decoder_65_5e-05.pkl, coco_word_decoder_70_3e-05.pkl, coco_word_decoder_75_2e-05.pkl, coco_word_decoder_80_1e-05.pkl, coco_word_decoder_90_5e-06.pkl
 
 
 ------------------------------
