@@ -22,13 +22,13 @@ def load_image_from_path(path, transform=None):
     from PIL import Image as PIL_Image
 
 
-    image = Image.open(path)
-    image = image.resize([224, 224], Image.Resampling.LANCZOS)
-    # image = image.crop([0,0,224,224])
-    if transform is not None:
-        image = transform(image).unsqueeze(0)
+    with Image.open(path) as image:
+        image = image.resize([224, 224], Image.LANCZOS)
+        # image = image.crop([0,0,224,224])
+        if transform is not None:
+            image = transform(image).unsqueeze(0)
 
-    return image
+        return image
 
 def load_image(url, transform=None):
 

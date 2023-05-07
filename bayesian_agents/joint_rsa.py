@@ -37,9 +37,9 @@ class RSA:
 	def initialize_speakers(self, paths):
 		self.initial_speakers = [Model(path=path,
 			dictionaries=(self.seg2idx,self.idx2seg)) for path in paths]
-		self.speaker_prior = Model(path="lang_mod",
+		# self.speaker_prior = Model(path="lang_mod",
 		# self.speaker_prior = Model(path=paths[0],
-			dictionaries=(self.seg2idx,self.idx2seg))
+		# 	dictionaries=(self.seg2idx,self.idx2seg))
 		# self.initial_speaker.set_features()
 
 		# self.speaker_prior
