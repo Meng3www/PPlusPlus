@@ -39,6 +39,10 @@ class Model:
 		# Build Models
 		self.encoder = EncoderCNN(embed_size)
 		self.encoder.eval()  # evaluation mode (BN uses moving mean/variance)
+		# eval() turns off some specific layers/parts of the model that behave differently during training 
+		# and inference (evaluating), e.g. Dropouts Layers, BatchNorm Layers
+		# the common practice for evaluating/validation is using torch.no_grad() in pair with model.eval() 
+		# to turn off gradients computation
 		self.decoder = DecoderRNN(embed_size, hidden_size, 
 							 output_size, num_layers)
 
@@ -99,7 +103,7 @@ class Model:
 		else:
 			from utils.sample import to_var,load_image,load_image_from_path
 			# list: 2, 2 tensors of shape (1, 256)
-			self.features = [self.encoder(to_var(load_image(url, self.transform), volatile=True)) for url in images]
+			self.features = [self.encoder(to_var(load_image_from_path(url, self.transform), volatile=True)) for url in images]
 			# self.default_image = self.encoder(to_var(load_image_from_path("data/default.jpg", self.transform), volatile=True))
 
 
