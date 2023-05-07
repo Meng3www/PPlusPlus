@@ -136,8 +136,7 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 
 	toc = time.time()
 	for timestep in tqdm(range(len(start_from)+1,max_sentence_length)):
-		
-		
+
 		state.timestep=timestep
 
 		new_sent_worldprior_prob = []
@@ -172,8 +171,6 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 				state.context_sentence = new_sentence
 
 				new_prob = (prob*(1/math.pow(state.timestep,decay_rate)))+old_prob  # -24.202415466308594
-
-
 				# print("beam listener",rsa.word2ord[seg], l)
 
 				new_sent_worldprior_prob.append((new_sentence,worldpriors,new_prob))
@@ -186,7 +183,9 @@ def ana_beam(rsa,initial_world_prior,speaker_rationality, target,speaker, pass_p
 			# cut down to size of 2
 			sent_worldprior_prob = sent_worldprior_prob[:beam_width]
 			new_sent_worldprior_prob = []
-			
+			# sent: list of strings
+			# worldprior: ndarray (61, 2, 1, 1) float
+			# prob: float
 			for sent,worldprior,prob in sent_worldprior_prob:
 				# print("".join(sent),np.exp(prob))
 				# print(state.timestep)

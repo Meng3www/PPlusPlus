@@ -3,14 +3,12 @@ import nltk
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from torch.nn.utils.rnn import pack_padded_sequence
 from torch.autograd import Variable
-from utils.build_vocab import Vocabulary
+# from utils.build_vocab import Vocabulary
 import pickle
 from os.path import isfile
 from PIL import Image
 from torchvision import transforms
-from torch.autograd import Variable
 
 
 class EncoderCNN(nn.Module):
