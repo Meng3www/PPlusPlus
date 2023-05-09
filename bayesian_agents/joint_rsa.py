@@ -3,8 +3,7 @@ import itertools
 import scipy
 import scipy.stats
 import numpy as np
-# import math
-# from PIL import Image as PIL_Image
+import pickle
 # from keras.preprocessing import image
 # from keras.models import load_model
 # from utils.image_and_text_utils import index_to_char,char_to_index
@@ -13,12 +12,12 @@ from bayesian_agents.rsaWorld import RSA_World
 from utils.numpy_functions import softmax
 from train.Model import Model
 
-class RSA:
 
-	def __init__(self, seg_type, tf):
-		self.tf = tf
-		self.seg_type = seg_type
-		self.char = self.seg_type == "char"
+class RSA:
+	def __init__(self, seg_type, model):
+		self.model = model[0]  # false
+		self.seg_type = seg_type  # 'char'
+		self.char = self.seg_type == "char"  # bool
 
 		# caches for memoization
 		self._speaker_cache = {}
@@ -29,10 +28,13 @@ class RSA:
 			self.idx2seg = index_to_char
 			self.seg2idx = char_to_index
 		else:  # word
-			#todo: build vocab here
-			# self.idx2seg = index_to_word
-			# self.seg2idx = word_to_index
-			pass
+			# data/vocab/vg_vocab_small.pkl
+			path_vocab = 'data/vocab/' + self.model + '_vocab_small.pkl'
+			with open(path_vocab, 'rb') as f:
+				vocab = pickle.load(f)  # a Vocabulary() from utils/build_vocab.py
+			self.idx2seg = vocab.idx2word
+			self.seg2idx = vocab.word2idx
+
 
 	def initialize_speakers(self, paths):
 		self.initial_speakers = [Model(path=path,
@@ -103,11 +105,9 @@ class RSA:
 		# print("SPEAKER\n\n",depth)
 
 		if depth==0:
-			# print("S0")
 			# print("TIMESTEP:",state.timestep,"INITIAL SPEAKER CALL")
 			# state {context_sentence: [], world_priors: ndarray: (61, 2, 1, 1) [[[[-0.69314718]],,  [[-0.69314718]]],,, ...}
 			# world <World image:0 rationality:0 speaker:0>
-			# self.initial_speakers[world.speaker]: Model with preloaded para
 			return self.initial_speakers[world.speaker].forward(state=state,world=world)
 			
 		else:
@@ -162,38 +162,29 @@ class RSA:
 		# world = RSA_World(target=0,speaker=0,rationality=0)
 		# image_prior = self.listener(state=state,utterance=utterance,depth=depth-1)
 		# rationality_prior = np.asarray([0.3,0.7])
-
+		# ndarray (len(url), 1, 1) neg float
 		world_prior = state.world_priors[state.timestep-1]
-		# print("world prior",np.exp(world_prior))
-		# if state.timestep < 4:
-		# 	print("world priors",np.exp(state.world_priors[:4]))
-		# 	print("timestep",state.timestep)
-
-		# if depth==0:
-		# else: world_prior = self.listener(state=state,utterance=utterance,depth=0)
-		# print(world_prior.shape)
 
 		# I could write: itertools product axes
-		scores = np.zeros((world_prior.shape))  # ndarray (2, 1, 1)
+		scores = np.zeros((world_prior.shape))  # ndarray (len(url), 1, 1)
 		for n_tuple in itertools.product(*[list(range(x)) for x in world_prior.shape]):
-			# print(n_tuple)
-			# print(world_prior.shape)
+			# print(n_tuple)  # (0, 0, 0)
 		# for j in range(self.number_of_images):
 		# 	for i in range(len(rationality_prior)):
 			# world.target=j
-			world = RSA_World(target=n_tuple[state.dim["image"]],rationality=n_tuple[state.dim["rationality"]],speaker=n_tuple[state.dim["speaker"]])
+			world = RSA_World(target=n_tuple[state.dim["image"]], rationality=n_tuple[state.dim["rationality"]],
+							speaker=n_tuple[state.dim["speaker"]])  # <World image:0 rationality:0 speaker:0>
 			# world.set_values(n_tuple)
-
 			# world.rationality=rationality_prior[i]
-			# NOTE THAT NOT DEPTH-1 HERE # ndarray (30,) float
+			# NOTE THAT NOT DEPTH-1 HERE # ndarray (4987,) float
 			out = self.speaker(state=state,world=world,depth=depth)
 			# out = np.squeeze(out)
 
 			# print(out,depth)  # utterance: int # n_tuple: (0, 0, 0), (1, 0, 0)
 			scores[n_tuple]=out[utterance]
-
+		# ndarray (len(url), 1, 1) float
 		scores = scores*state.listener_rationality
-		# ndarray (2, 1, 1) float
+		# ndarray (len(url), 1, 1) float
 		world_posterior = (scores + world_prior) - scipy.special.logsumexp(scores + world_prior)
 		# print("world posterior listener complex shape",world_posterior.shape)
 		return world_posterior

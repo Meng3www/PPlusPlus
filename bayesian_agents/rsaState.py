@@ -19,8 +19,8 @@ class RSA_State:
 		self.dim = {"image":0,"rationality":1,"speaker":2}
 
 		# the priors at t>0 only matter if we aren't updating the prior at each step
-		# initial_world_prior: ndarray (2, 1, 1) [[[-0.69314718]],, [[-0.69314718]]]
-		# self.world_priors: ndarray: (61, 2, 1, 1) [[[[-0.69314718]],,  [[-0.69314718]]],,, ...
+		# initial_world_prior: ndarray (len(url), 1, 1) [[[-0.69314718]],, [[-0.69314718]]]
+		# self.world_priors: ndarray: (11, len(url), 1, 1) [[[[-0.69314718]],,  [[-0.69314718]]],,, ...
 		self.world_priors=np.asarray([initial_world_prior for x in range(max_sentence_length+1)])
 		
 		self.listener_rationality=listener_rationality  # 1.0
