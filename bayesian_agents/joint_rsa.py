@@ -12,6 +12,7 @@ from utils.config import *
 from bayesian_agents.rsaWorld import RSA_World
 from utils.numpy_functions import softmax
 from train.Model import Model
+#from scipy.special import logsumexp
 
 class RSA:
 
@@ -151,7 +152,7 @@ class RSA:
 			scores = np.asarray(scores)
 			# rationality not present at s2
 			# update prior to posterior
-			posterior = (scores + prior) - scipy.misc.logsumexp(scores + prior)
+			posterior = (scores + prior) - scipy.special.logsumexp(scores + prior)
 
 			return posterior
 

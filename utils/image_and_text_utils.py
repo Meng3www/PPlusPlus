@@ -255,7 +255,7 @@ def vectorize_caption(sentence):
     if len(sentence) > 0 and sentence[-1] in list("!?."):
         sentence = sentence[:-1]
     # add start and stop token
-    sentence = start_token["char"] + sentence + stop_token["char"]
+    # sentence = start_token["char"] + sentence + stop_token["char"] (not needed in evaluation, already include start and stop token)
     # sentence is now a list
     sentence = list(sentence)  # ['^', '$']
     # add padding

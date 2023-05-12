@@ -19,8 +19,8 @@ from bayesian_agents.joint_rsa import RSA
 
 urls = [
 	# "https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg",
-	"https://cdn.pixabay.com/photo/2019/08/14/18/51/school-bus-4406479_1280.jpg",
-	"https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg"
+	"vg_data/ts1_img/man/1_3082",
+	"vg_data/ts1_img/man/51_4931359"
 	]
 
 # code is written to be able to jointly infer speaker's rationality and neural model, but for simplicity, let's assume these are fixed
@@ -66,8 +66,20 @@ pragmatic_caption = ana_beam(
 	speaker=0,
 	start_from=list(""),
 	initial_world_prior=initial_world_prior
-	, beam_width=2
+#	, beam_width=2
 )
 
+# pragmatic_caption = ana_greedy(
+#pragmatic_caption = ana_beam(
+#	speaker_model,
+#	target=0,
+#	depth=1,
+#	speaker_rationality=0,
+#	speaker=0,
+#	start_from=list(""),
+#	initial_world_prior=initial_world_prior
+#	, beam_width=2
+#)
+
 print("Literal caption:\n",literal_caption)
-print("Pragmatic caption:\n",pragmatic_caption)
+#print("Pragmatic caption:\n",pragmatic_caption)
