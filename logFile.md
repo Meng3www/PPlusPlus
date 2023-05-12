@@ -1,3 +1,15 @@
+### 12.05.2023
+add char-level accuracy score for ts1
+
+---------- greedy ------------  
+S0 accuracy greedy:  43  
+S1 accuracy greedy:  44
+
+---------- beam ------------  
+S0 accuracy beam:  38  
+S1 accuracy beam:  49
+
+-----------------------------------------
 ### 04.05.2023
 test learning rate for coco_word_model
 |lr | 0.01  |0.001  |0.0006 |0.0005 |0.0003 |0.0001 |*0.0004*|
