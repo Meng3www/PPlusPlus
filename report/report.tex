@@ -1,0 +1,128 @@
+% Based on a template by Julia Krings for the Grammar Formalisms 2018 course
+
+% ----------------------- TODO ---------------------------
+% Set your name, add partner in parentheses if you worked together
+\newcommand{\STUDENT}{Jia Sheng and Fanyi Meng}
+% ----------------------- TODO ---------------------------
+\newcommand{\COURSE}{Neural Pragmatic NLG WS 22}
+
+\documentclass[a4paper]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{subfigure}
+\usepackage{float}
+\usepackage{polynom}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{forloop}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage[]{algorithm2e}
+\usepackage{fancybox}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usepackage{covington}
+\usepackage{tipa,linguex}
+
+\input kvmacros
+
+\geometry{a4paper,left=3cm, right=3cm, top=3cm, bottom=3cm}
+
+\pagestyle {fancy}
+
+\fancyfoot[L]{}
+\fancyfoot[C]{}
+\fancyfoot[R]{Page \thepage /\pageref*{LastPage}}
+
+\def\header#1#2{
+  \begin{center}
+    {\Large\bfseries Report}\\
+    {\STUDENT}\\
+    {\COURSE} 
+  \end{center}
+}
+
+\begin{document}
+
+\header{\NUMBER}{}
+
+\section*{Introduction}
+This is the report for the final project of the course `Neural Pragmatic NLG WS 22', where we re-produce a paper. We choose \href{https://arxiv.org/abs/1804.05417}{\emph{Pragmatically Informative Image Captioning with Character-Level Inference}} (Reuben Cohn-Gordon, Noah Goodman, Christopher Potts, 2018), where a neural image captioner is combined with a Rational Speech Acts (RSA) model to produce captions that are both true and distinguishable among inputs of similar images.\\ 
+
+The authors train some production and evaluation models with a CNN-RNN architecture on Character-level and word-level respectively, using image and caption data from MSCOCO (henceforth coco) and Visual Genome (henceforth vg). One production model produces caption after multiple images with similar content are put into the RSA model, with output from two speakers: literal and pragmatic speakers, describing the image at index 0. The evaluation model is used to test upon leaning the captions from the two speakers, which caption has a higher probability to let the hearer point to the target at index 0.  \\
+
+The evaluation data involves groups of 10 images with common objects such as tree, bus, and person, taken from vg dataset. The result shows that the pragmatic speakers obtains higher accuracy than the literal speakers. While the word-level literal speaker performs better than the char-level literal speaker, the char-level pragmatic speaker out performs the word-level pragmatic speaker. 
+
+\section*{Original Code and Models}
+The paper provides a \href{https://github.com/reubenharry/Recurrent-RSA}{link} to the GitHub repository for the codes used in this paper, which is later cloned to our \href{https://github.com/Meng3www/PPlusPlus}{project repository}. After solving some errors (mostly due to library deprecation and wiki image limiting the accessibility to prevent web-crawlers, or so we assume), the main programme is runable with variable results. Additionally, we notice that in multiple \emph{.py} files, multiple variables are used without initiation, and some file path leads to non-existing folders. The code provided is not complete. \\
+
+The pre-trained models provided by the authors include: 
+\begin{itemize}
+  \item \emph{coco-encoder-5-3000.pkl} and \emph{coco-decoder-5-3000.pkl}, presumably encoder and decoder trained on coco dataset;
+  \item \emph{vg-encoder-5-3000.pkl} and \emph{vg-decoder-5-3000.pkl}, presumably encoder and decoder trained on vg dataset;
+  \item \emph{lang\_mod-encoder-5-3000.pkl} and \emph{lang\_mod-decoder-5-3000.pkl}, which is not mentioned in the paper, and upon finishing this report, we still do not know the purpose of them (therefore we ignore them in our re-production).
+\end{itemize}
+
+Some of the main issues include:
+\begin{itemize}
+  \item Test sets are not provided, and there is no further information on how to gather `regions in Visual Genome images whose ground truth captions have high word overlap' for TS2;
+  \item Word-level models are not provided, and the existing char-level might not work with a word level dictionary (this has been proved to be the case with our \emph{seg\_type\_word} branch). 
+\end{itemize}
+
+Proposed solutions are:
+\begin{itemize}
+  \item Incomplete code: we will try to rummage through what is provided, and add component with copy-and-paste programming;
+  \item Test sets: only one test set is used as opposed to the original proposal, which is test set 1 with `100 clusters of images, 10 for each of the 10 most common objects in Visual Genome';
+  \item Missing word-level models: we have to train our own. This leads to another problem that there is no specifications of model training in the paper, therefore we have an enormous space from the authors word-models. A better solution would be to train our own char- and word-level models. But then we face the risk that our models would not work (or as well as those of the authors), and will fail to test anything. 
+\end{itemize}
+
+\section*{Word Model Training}
+\subsection*{Data Preparation}
+Before the \href{https://www.visualgenome.org}{vg website} is down, we fortunately have downloaded some images and \emph{region\_descriptions.json} already (We choose this file according to the code from \emph{utils} folder from the authors). We verify that we can concatenate the information with a url base to get the working url of the images, so that we still get access to the images without downloading them; and that they are of the same images as those we have managed to download. \\
+
+We are not able to train our image encoders for many reason, so we use the encoder provided by the authors. Therefore the number of features also follows (1, 256). The length of captions are set to 10 words (plus the start and end symbols). A vocabulary class is imported from the original code from the authors. We pre-process all the captions in the vg json files, and only count those words that have appeared at least 100 times, yielding a vocab size of 4,987. Since most of vg regions are small, the process is relatively fast on Google colab with GPU. \\
+
+The result is the pre-process halts at 40k data points due to the mono channel of grey-scale images causing error during the process. But 40k training data seems to be enough for our small model (so we guess). They are saved as two-tuples containing a tensor of image features (forwarded by the pre-trained CNN model), and a tensor of captions as index basing on the vg-dictionary. The test data contains 10 groups of data points, each contain 4k four-tuples (two aforementioned tensors, a string of the ground truth caption, and a string of url of the image).\\
+
+We prepare the coco data in the same way. The problem we found later is that most of the coco captions are longer than 10 words, since they describe a complete image, contrasting a regional description from a vg data point. And also due to the size of the images, the process is longer. In order not to get suspended for abusing Colab's GPU, we save the processed training data into 10ks, and plan to initiate 4 dataloader during the training process (But we still manage to get connection errors running the programme on Colab and Urobe).  
+\subsection*{Code completion}
+Apart from adapting code for processing, the biggest challenge is to make the training loop run (for we might get the dimensions wrong). So after several round of debugging the authors code, and some exercise sheet from the course (for the training, mainly from sheet 5.1, and Sheet 8.1 for sampling), we managed to get the training run (and later with some trained decoder, we re-wrote the sampling function). \\
+But due to the many references we take, there are some differences (and other that we aren't aware of): 
+\begin{itemize}
+  \item At one point, the author used one-hot encoding of the shape (1, 1, 30) for chars upon initiating a \emph{state} class object, and saved the encoding into a class variable. Then before this value could be used anywhere, it's assigned a new value \emph{['\^']}. We therefore ignored one-hot encoding;
+  \item The original shape used by the authors is of three dimensions, where we only use two;
+  \item We later found that during unrolling, the original models seem to take the image features first and then one char (embedded) at a time. But since we do not see the code for the training models, we instead concatenate the image feature with each word embedding, and feed the tensors into the model, ending up with a different shape for lstm.  
+  \item Sample is therefore also changed due to the different output shape (but even if the shape is not changed, we will still have to make big change since we can't see what the original code is trying to achieve). 
+\end{itemize}
+
+\subsection*{Training}
+We initially train our models on Google Colab (because of their GPU), then the constant time-out and suspensions do not allow us to finish the training there, therefore we borrow some additional space on Urobe and move the training there. But still, Colab is very useful when we test out a few epochs' training to find out the best learning rate. Some examples for vg word models are (from the project repository):
+\begin{center}
+\begin{tabular}{ c c c c }
+ epochs &  lr=0.005 & lr=0.001 & lr=0.0005\\ 
+ 5 & 4,937,966 & 3,526,568 & 3,141,721\\  
+ 10 & 5,115,217 & 2,794,233 & 2,046,428\\  
+ 15 & 5,394,896 & 2,349,121 & 1,557,936\\
+\end{tabular}
+\end{center}
+
+Later we found that a screen on Urobe would require a renewed Kerberos ticket every 24 hours, which forbid a very long training session. Additionally at one point, the loss stops converging but the number is still huge. As a result we train our models for certain epochs, save the model, generate a new key, resume training (and reduce the learning rate further if necessary). \\
+
+We end the training for vg model after 105 epochs, and save multiple models in case of over-fitting. We do the same for the coco word model. The contrast in loss is obvious: vg model converges well since the image is small, and there is a one-to-one relation. The loss reduces from the original 738,076 to 4,649 (0.63\% of the original epoch) in the last epoch. Meanwhile each coco image could point to several different captions, and that could have led to more uncertainty. The loss reduction is therefore only from 1,297,341 at epoch 1, and 123,273 at the last epoch 116, still 9.5\% of the initial epoch.\\
+
+The vg word model works well on training data, but not so good on testing data. The generations are mostly grammatical. But the data the model is trained on contain normally very simple object such as a stapler, a clock, etc. If presented an item not presented in the data, the model will not recognise it, and predict something interesting such as \emph{red car leaning on pole} (the target \emph{red and blue banner on side of building}). In contrast the coco model some times generate ungrammatical or/and incomplete captions, due to us setting the max sentence length too small. And on multiple occasions, the model predicts dogs when there aren't any. Therefore, there could be some biased training data.  
+\subsection*{Word-level RSA model}
+Since as previously mentioned, the output shape of the word model is different from that of char model, in order for us to use the same unrolling and to adapt to the original RSA model, we need to modify multiple files. At this point the word model is separated from the main branch (which has the original char model). \\
+
+We use greedy search and apart from predicting things that are not in the images, most of the time the captions generated by literal and pragmatic speaker are the same, but with slightly different log probability. 
+\section*{Evaluation}
+\end{document}
