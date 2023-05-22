@@ -1,5 +1,14 @@
+### 22.05.2023
+add word-level accuracy scores for ts1
+
+---------- greedy ------------  
+S0 accuracy greedy:  6  
+S1 accuracy greedy:  7
+
+
+---------------------------------------
 ### 12.05.2023
-add char-level accuracy score for ts1
+add char-level accuracy scores for ts1
 
 ---------- greedy ------------  
 S0 accuracy greedy:  43  
