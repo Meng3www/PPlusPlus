@@ -1,17 +1,17 @@
 # NPNLG Team Project
 
-## Table of contents
+## Table of Contents
 * [General info](#general-info)
 * [Team members](#team-members)
 * [Documentation](#documentation)
 * [Project Outcome](#project-outcome)
 * [Other Reference](#other-reference)
 
-## General info
+## General Info
 This project aims to reproduce the key results of the paper "Cohn-Gordon et al. (2018), Pragmatically Informative Image Captioning with Character-Level Inference" and critically access its evaluation approaches with beam search and greedy sampling for the character- and word-level incremental predictions.   
 It is part of the course work for the 6-ECTS course "Universität Tübingen, WS2022/2023, Prof Dr Michael Franke, Neural Pragmatic Natural Language Generation"
 
-## Team members
+## Team Members
 - [Fanyi Meng](https://github.com/Meng3www)
 - [Jia Sheng](https://github.com/jiasheng1100)
 
@@ -21,7 +21,19 @@ General:
 - [logFile.md](https://github.com/Meng3www/PPlusPlus/blob/main/logFile.md): project timeline and progress
 
 Model Training:
-- [](): 
+- original files by the author modified to run word models on [word_model_branch](https://github.com/Meng3www/PPlusPlus/tree/word_model_branch) after the Great Schism: 
+    - [bayesian_agents/](https://github.com/Meng3www/PPlusPlus/tree/word_model_branch/bayesian_agents)
+    - [recursion_schemes.py](https://github.com/Meng3www/PPlusPlus/blob/word_model_branch/recursion_schemes/recursion_schemes.py) for greedy search
+    - [Model.py](https://github.com/Meng3www/PPlusPlus/blob/word_model_branch/train/Model.py)
+    - some files in [utils/](https://github.com/Meng3www/PPlusPlus/tree/word_model_branch/utils)
+- [coco_data/](https://github.com/Meng3www/PPlusPlus/tree/word_model_branch/coco_data): 
+    - Preprocess_coco for pre-processing coco images and captions into training data (feature - caption tensors in pairs) and testing data (with target captions and url for the image) in `.py` and `.ipynb`, to be used on urobe and Google Colab respectively
+    - coco_word_model(_desclr): train coco model (with descending learning rate)
+- [vg_data/](https://github.com/Meng3www/PPlusPlus/tree/word_model_branch/vg_data):
+    - [Preprocess_vg.ipynb](https://github.com/Meng3www/PPlusPlus/blob/word_model_branch/vg_data/Preprocess_vg.ipynb) vg data processed on Google Colab
+    - [vg_word_model(_urobe)] train vg model, learning rate changed manually
+- RNN models trained: [coco_word_decoder.pk](https://github.com/Meng3www/PPlusPlus/blob/word_model_branch/data/models/coco_word_decoder.pkl) and [vg_word_decoder.pkl](https://github.com/Meng3www/PPlusPlus/blob/word_model_branch/data/models/vg_word_decoder.pkl) 
+- training-testing data cannot be uploaded due to LFS quota running out 
 
 Evaluation:
 - [evaluate/build_test_data.py](https://github.com/Meng3www/PPlusPlus/blob/main/evaluate/build_test_data.py): build Test set 1 data
@@ -49,6 +61,6 @@ For more details, please refer to our [project report](https://github.com/Meng3w
 - Gohn-Gordon et al. (2918): https://aclanthology.org/N18-2070/
 
 
-Lastly modified on May 28, 2023\
+Lastly modified on 28 May 2023\
 Tübingen
 
