@@ -9,7 +9,7 @@
 
 ## General info
 This project aims to reproduce the key results of the paper "Cohn-Gordon et al. (2018), Pragmatically Informative Image Captioning with Character-Level Inference" and critically access its evaluation approaches with beam search and greedy sampling for the character- and word-level incremental predictions.   
-It is part of the course work for the 6-ECTS course "Universität Tübingen, WS2022/2023, Michael Franke, Neural Pragmatic Natural Language Generation"
+It is part of the course work for the 6-ECTS course "Universität Tübingen, WS2022/2023, Prof Dr Michael Franke, Neural Pragmatic Natural Language Generation"
 
 ## Team members
 - [Fanyi Meng](https://github.com/Meng3www)
@@ -38,7 +38,7 @@ Our results:
 
 ![table1](report/table1.png)
 
-Results from the original papaer:
+Results from the original paper:
 
 ![table2](report/table2.png)
 
