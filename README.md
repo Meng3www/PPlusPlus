@@ -4,6 +4,7 @@
 * [General info](#general-info)
 * [Team members](#team-members)
 * [Documentation](#documentation)
+* [Project Outcome](#project-outcome)
 * [Other Reference](#other-reference)
 
 ## General info
@@ -34,9 +35,11 @@ Evaluation:
 
 ## Project Outcome
 Our results:
+
 ![table1](report/table1.png)
 
 Results from the original papaer:
+
 ![table2](report/table2.png)
 
 For more details, please refer to our [project report](https://github.com/Meng3www/PPlusPlus/blob/main/report/report.pdf).
