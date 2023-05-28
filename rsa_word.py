@@ -6,10 +6,9 @@ from utils.build_vocab import Vocabulary
 
 if __name__ == '__main__':
     urls = [
-        "http://images.cocodataset.org/val2014/COCO_val2014_000000060623.jpg",
-        # "https://cdn.pixabay.com/photo/2019/08/14/18/51/school-bus-4406479_1280.jpg",
-        "https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg",
-        "https://cdn.pixabay.com/photo/2016/03/04/19/15/neoplan-1236544_1280.jpg"
+    "http://images.cocodataset.org/val2014/COCO_val2014_000000060623.jpg",
+    "https://cdn.pixabay.com/photo/2015/01/06/11/06/london-590114_1280.jpg",
+    "https://cdn.pixabay.com/photo/2016/03/04/19/15/neoplan-1236544_1280.jpg"
     ]
 
     # the rationality of the S1
